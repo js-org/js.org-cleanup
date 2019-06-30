@@ -1,6 +1,7 @@
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest");
 const octokit = new Octokit();
+// TODO: authenticate with dedicated js.org cleanup bot (store token in ignored file)
 
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
@@ -166,3 +167,7 @@ const createIssue = async () => {
 };
 
 createIssue();
+
+// TODO: parse issue to detect entries that were not ticked
+// TODO: remove un-ticked entries from the cnames_active file
+// TODO: create PR to update cnames_active file (ref issue)
