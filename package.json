@@ -1,0 +1,23 @@
+{
+  "name": "js.org-cleanup",
+  "version": "1.0.0",
+  "description": "The script behind the annual js.org cleanup process",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MattIPv4/js.org-cleanup.git"
+  },
+  "author": "Matt (IPv4)",
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/MattIPv4/js.org-cleanup/issues"
+  },
+  "homepage": "https://github.com/MattIPv4/js.org-cleanup#readme",
+  "dependencies": {
+    "@octokit/rest": "^16.28.2",
+    "node-fetch": "^2.6.0"
+  }
+}
