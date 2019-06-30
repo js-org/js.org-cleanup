@@ -5,6 +5,9 @@ const octokit = new Octokit();
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
 
+// Load in fs for files
+const fs = require("fs");
+
 // Custom String.format
 if (!String.prototype.format) {
     String.prototype.format = function () {
@@ -31,6 +34,8 @@ if (!String.prototype.format) {
  * @returns {Promise<Object.<string, cnameObject>>} - Every entry in the CNAMEs file
  */
 const getCNAMEs = async () => {
+    // TODO: load from cache/getCNAMEs.json if present
+
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
         owner: "js-org",
@@ -52,6 +57,8 @@ const getCNAMEs = async () => {
         }
     }
 
+    // TODO: save data to cache/getCNAMEs.json
+
     // Done
     return cnames
 };
@@ -66,13 +73,13 @@ const testUrl = async url => {
     try {
         resp = await fetch(url, {timeout: 1000});
     } catch (err) {
-        return `Failed during request with error \`${err}\``
+        return `Failed during request with error '${err}'`
     }
     if (!resp.ok) {
-        return `Failed with status code \`${resp.status} ${resp.statusText}\``
+        return `Failed with status code '${resp.status} ${resp.statusText}'`
     }
     if (!resp.text()) {
-        return `Failed with empty return body (status \`${resp.status} ${resp.statusText}\`)`
+        return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`
     }
 };
 
@@ -81,6 +88,8 @@ const testUrl = async url => {
  * @returns {Promise<Object.<string, cnameObject>>} - Any failed CNAME entries
  */
 const validateCNAMEs = async () => {
+    // TODO: load from cache/validateCNAMEs.json if present
+
     // Get the CNAMEs
     const cnames = await getCNAMEs();
 
@@ -125,8 +134,35 @@ const validateCNAMEs = async () => {
         console.log(`  ...succeeded`);
     }
 
+    // TODO: save data to cache/validateCNAMEs.json
+
     // Done
     return failed
 };
 
-validateCNAMEs();
+/**
+ * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
+ */
+const createIssue = async () => {
+    // Get the failed CNAMEs
+    const failed = await validateCNAMEs();
+
+    // Convert them to MD list
+    const base = "- [ ] **[{0}.js.org](http://{0}.js.org)** > [{1}](http://{1}){2}";
+    const list = [];
+    for (const cname in failed) {
+        const data = failed[cname];
+        list.push(base.format(cname, data.target, `\n    HTTP: \`${data.http}\`\n    HTTPS: \`${data.https}\``));
+    }
+
+    // TODO: Automatically create cleanup issues here (where possible), will inject into a separate CONTACT list
+
+    // Generate new issue
+    const file = await fs.readFileSync("issue_template.md", "utf8");
+    const newFile = file.replace("{{PENDING}}", list.join("\n")).replace("{{CONTACT}}", "");
+    console.log(newFile);
+
+    // TODO: Automatically create the main issue
+};
+
+createIssue();
