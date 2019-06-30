@@ -148,11 +148,11 @@ const createIssue = async () => {
     const failed = await validateCNAMEs();
 
     // Convert them to MD list
-    const base = "- [ ] **[{0}.js.org](http://{0}.js.org)** > [{1}](http://{1}){2}";
+    const base = "- [ ] **{0}.js.org** > {1}\n  [HTTP](http://{0}.js.org): `{2}`\n  [HTTPS](https://{0}.js.org): `{3}`";
     const list = [];
     for (const cname in failed) {
         const data = failed[cname];
-        list.push(base.format(cname, data.target, `\n    HTTP: \`${data.http}\`\n    HTTPS: \`${data.https}\``));
+        list.push(base.format(cname, data.target, data.http, data.https));
     }
 
     // TODO: Automatically create cleanup issues here (where possible), will inject into a separate CONTACT list
