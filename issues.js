@@ -161,9 +161,9 @@ const createMainIssue = async failed => {
         return cache.html_url;
     }
 
-    // Create new empty issue
-    const owner = "js-org-cleanup";
-    const repo = "test-repo-1";
+    // Create new empty issue (change this for DEV)
+    const owner = "js-org";
+    const repo = "js.org";
     const issue = await octokit.issues.create({
         owner,
         repo,

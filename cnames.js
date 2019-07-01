@@ -100,10 +100,10 @@ const validateCNAMEs = async () => {
     const tests = {};
 
     // DEV: only test the first few
-    const slice = Object.keys(cnames).slice(10);
+    /*const slice = Object.keys(cnames).slice(10);
     for (const key in slice) {
         delete cnames[slice[key]];
-    }
+    }*/
 
     // Test each entry
     let counter = 0;

@@ -12,7 +12,7 @@ const createIssue = async () => {
     const failed = await validateCNAMEs();
 
     // DEV: custom test failed record
-    for (const cname in failed) {
+    /*for (const cname in failed) {
         if (!failed.hasOwnProperty(cname)) continue;
         delete failed[cname];
     }
@@ -39,7 +39,7 @@ const createIssue = async () => {
         http: "Failed with status code '404 Not Found'",
         https: "Failed with status code '404 Not Found'",
         failed: true
-    };
+    };*/
 
     console.log(await createMainIssue(failed));
 };
