@@ -60,6 +60,7 @@ const setCache = async (name, contents) => {
  * @property {string} [noCF] - The noCF tag (if present) on the record
  * @property {string} [http] - The status of the HTTP test (if failed)
  * @property {string} [https] - The status of the HTTPS test (if failed)
+ * @property {boolean} [failed] - If the testing failed
  */
 
 /**
@@ -126,18 +127,15 @@ const testUrl = async url => {
  * @returns {Promise<Object.<string, cnameObject>>} - Any failed CNAME entries
  */
 const validateCNAMEs = async () => {
-    const cache = await getCache("validateCNAMEs");
-    if (cache) {
-        console.log("Cached data found for validateCNAMEs");
-        return cache;
-    }
-
     // Get the CNAMEs
     const cnames = await getCNAMEs();
 
+    // Fetch any cache we have
+    const cache = await getCache("validateCNAMEs");
+
     // Define some stuff
     const urlBase = "http{0}://{1}js.org";
-    const failed = {};
+    const tests = {};
 
     // DEV: only test the first few
     const slice = Object.keys(cnames).slice(10);
@@ -147,10 +145,19 @@ const validateCNAMEs = async () => {
 
     // Test each entry
     for (const cname in cnames) {
+        if (!cnames.hasOwnProperty(cname)) continue;
+
         // Set our testing URLs
         const subdomain = cname + (cname == "" ? "" : ".");
         const urlHttp = urlBase.format("", subdomain);
         const urlHttps = urlBase.format("s", subdomain);
+
+        // If in cache, use that
+        if (cache && cname in cache) {
+            console.log(`${urlHttp} in cache, skipping.`);
+            tests[cname] = cache[cname];
+            continue;
+        }
 
         // Run the tests
         console.log(`Testing ${urlHttp}...`);
@@ -166,20 +173,29 @@ const validateCNAMEs = async () => {
             const data = cnames[cname];
             data.http = failedHttp;
             data.https = failedHttps;
-            failed[cname] = data;
+            data.failed = true;
+            tests[cname] = data;
+        } else {
+            // Log
+            console.log(`  ...succeeded`);
 
-            // Next
-            continue;
+            // Save
+            const data = cnames[cname];
+            data.failed = false;
+            tests[cname] = data;
         }
 
-        // Success
-        console.log(`  ...succeeded`);
+        // Save to cache
+        await setCache("validateCNAMEs", tests);
     }
 
-    // Save to cache
-    await setCache("validateCNAMEs", failed);
-
     // Done
+    const failed = {};
+    for (const cname in tests) {
+        if (!tests.hasOwnProperty(cname)) continue;
+        const data = tests[cname];
+        if (data.failed) failed[cname] = data;
+    }
     return failed
 };
 
@@ -194,6 +210,7 @@ const createIssue = async () => {
     const base = "- [ ] **{0}.js.org** > {1}\n  [HTTP](http://{0}.js.org): `{2}`\n  [HTTPS](https://{0}.js.org): `{3}`";
     const list = [];
     for (const cname in failed) {
+        if (!failed.hasOwnProperty(cname)) continue;
         const data = failed[cname];
         list.push(base.format(cname, data.target, data.http, data.https));
     }
