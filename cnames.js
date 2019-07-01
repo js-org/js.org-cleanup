@@ -57,6 +57,7 @@ const getCNAMEs = async () => {
     await setCache("getCNAMEs", cnames);
 
     // Done
+    console.log(chalk.greenBright.bold("Fetching completed for getCNAMEs"));
     return cnames
 };
 
@@ -105,8 +106,15 @@ const validateCNAMEs = async () => {
     }
 
     // Test each entry
+    let counter = 0;
+    let failedCounter = 0;
+    const totalLength = Object.keys(cnames).length;
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
+
+        // Set position info
+        counter++;
+        const position = `${counter.toLocaleString()}/${totalLength.toLocaleString()} ${Math.round(counter / totalLength * 100).toLocaleString()}% (Failures: ${failedCounter.toLocaleString()} ${Math.round(failedCounter / totalLength * 100).toLocaleString()}%)`;
 
         // Set our testing URLs
         const subdomain = cname + (cname == "" ? "" : ".");
@@ -115,13 +123,14 @@ const validateCNAMEs = async () => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(chalk.blue(`  ${urlHttp} in cache, skipping tests.`));
+            console.log(chalk.blue(`  [${position}] ${urlHttp} in cache, skipping tests.`));
             tests[cname] = cache[cname];
+            if (tests[cname].failed) failedCounter++;
             continue;
         }
 
         // Run the tests
-        console.log(chalk.blue(`  Testing ${urlHttp}...`));
+        console.log(chalk.blue(`  [${position}] Testing ${urlHttp}...`));
         const failedHttp = await testUrl(urlHttp);
         const failedHttps = await testUrl(urlHttps);
 
@@ -131,6 +140,7 @@ const validateCNAMEs = async () => {
             console.log(chalk.yellow(`    ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``));
 
             // Save
+            failedCounter++;
             const data = cnames[cname];
             data.http = failedHttp;
             data.https = failedHttps;

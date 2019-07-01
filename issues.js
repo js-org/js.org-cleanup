@@ -52,14 +52,22 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     const contact = {};
 
     // Attempt with each entry
+    let counter = 0;
+    let successCounter = 0;
+    const totalLength = Object.keys(failed).length;
     for (const cname in failed) {
         if (!failed.hasOwnProperty(cname)) continue;
 
+        // Set position info
+        counter++;
+        const position = `${counter.toLocaleString()}/${totalLength.toLocaleString()} ${Math.round(counter / totalLength * 100).toLocaleString()}% (Successes: ${successCounter.toLocaleString()} ${Math.round(successCounter / totalLength * 100).toLocaleString()}%)`;
+
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(chalk.blue(`  ${cname} in cache, skipping automatic contact.`));
+            console.log(chalk.blue(`  [${position}] ${cname} in cache, skipping automatic contact.`));
             const data = cache[cname];
             if (data.contact) {
+                successCounter++;
                 contact[cname] = data;
             } else {
                 pending[cname] = data;
@@ -69,7 +77,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // Get cname data
         const data = failed[cname];
-        console.log(chalk.blue(`  Attempting to contact ${cname} (${data.target})...`));
+        console.log(chalk.blue(`  [${position}] Attempting to contact ${cname} (${data.target})...`));
 
         // Regex time
         const reg = new RegExp(/(\S+).github.io(?:\/(\S+))?/g);
@@ -106,6 +114,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
                 pending[cname] = data;
             } else {
                 console.log(chalk.green("    ...succeeded"));
+                successCounter++;
                 data.issue = issue.data;
                 data.contact = true;
                 contact[cname] = data;
