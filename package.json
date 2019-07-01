@@ -18,6 +18,7 @@
   "homepage": "https://github.com/MattIPv4/js.org-cleanup#readme",
   "dependencies": {
     "@octokit/rest": "^16.28.2",
+    "chalk": "^2.4.2",
     "node-fetch": "^2.6.0"
   }
 }

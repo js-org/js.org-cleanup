@@ -11,6 +11,9 @@ const octokit = new Octokit({auth: config.github_token});
 // Load in fs for files
 const fs = require("fs");
 
+// Load in chalk for logging
+const chalk = require("chalk");
+
 // Load custom jsdoc types
 require("./types.js");
 
@@ -38,6 +41,9 @@ const repoContactIssue = async (cname, data, issue) => {
  * @returns {Promise<cnamesAttemptedContact>}
  */
 const attemptTargetIssues = async (failed, issueUrl) => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting attemptTargetIssues process"));
+
     // Fetch any cache we have
     const cache = await getCache("attemptTargetIssues");
 
@@ -51,7 +57,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(`${cname} in cache, skipping automatic contact.`);
+            console.log(chalk.blue(`  ${cname} in cache, skipping automatic contact.`));
             const data = cache[cname];
             if (data.contact) {
                 contact[cname] = data;
@@ -63,14 +69,14 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // Get cname data
         const data = failed[cname];
-        console.log(`Attempting to contact ${cname} (${data.target})...`);
+        console.log(chalk.blue(`  Attempting to contact ${cname} (${data.target})...`));
 
         // Regex time
         const reg = new RegExp(/(\S+).github.io(?:\/(\S+))?/g);
         const match = reg.exec(data.target);
         if (!match) {
             // Not a github.io target
-            console.log("  ...failed, not a github target");
+            console.log(chalk.yellow("    ...failed, not a github target"));
             data.contact = false;
             pending[cname] = data;
         } else {
@@ -95,11 +101,11 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
             // Abort if no issue, else save issue data
             if (!issue || !issue.data) {
-                console.log("  ...failed, could not create issue");
+                console.log(chalk.yellow("    ...failed, could not create issue"));
                 data.contact = false;
                 pending[cname] = data;
             } else {
-                console.log("  ...succeeded");
+                console.log(chalk.green("    ...succeeded"));
                 data.issue = issue.data;
                 data.contact = true;
                 contact[cname] = data;
@@ -111,6 +117,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     }
 
     // Done
+    console.log(chalk.greenBright.bold("Attempts completed for attemptTargetIssues"));
     return {pending, contact}
 };
 
@@ -135,9 +142,13 @@ const entriesToList = cnames => {
  * @returns {Promise<string>}
  */
 const createMainIssue = async failed => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting createMainIssue process"));
+
+    // Fetch any cache we have
     const cache = await getCache("createMainIssue");
     if (cache) {
-        console.log("Main issue found in cached data.");
+        console.log(chalk.greenBright.bold("Cached data found for createMainIssue"));
         return cache.html_url;
     }
 
@@ -153,6 +164,9 @@ const createMainIssue = async failed => {
 
     // Attempt automatic contact
     const {pending, contact} = await attemptTargetIssues(failed, issue.data.html_url);
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
 
     // Convert them to MD list
     const pendingList = entriesToList(pending);
@@ -181,6 +195,7 @@ const createMainIssue = async failed => {
     await setCache("createMainIssue", issue.data);
 
     // Done
+    console.log(chalk.greenBright.bold("Issue creation completed for createMainIssue"));
     return issue.data.html_url;
 };
 

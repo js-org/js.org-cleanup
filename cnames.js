@@ -11,6 +11,9 @@ const octokit = new Octokit();
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
 
+// Load in chalk for logging
+const chalk = require("chalk");
+
 // Load custom jsdoc types
 require("./types.js");
 
@@ -19,9 +22,13 @@ require("./types.js");
  * @returns {Promise<cnamesObject>} - Every entry in the CNAMEs file
  */
 const getCNAMEs = async () => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting getCNAMEs process"));
+
+    // Fetch any cache we have
     const cache = await getCache("getCNAMEs");
     if (cache) {
-        console.log("Cached data found for getCNAMEs");
+        console.log(chalk.greenBright.bold("Cached data found for getCNAMEs"));
         return cache;
     }
 
@@ -81,6 +88,9 @@ const validateCNAMEs = async () => {
     // Get the CNAMEs
     const cnames = await getCNAMEs();
 
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting validateCNAMEs process"));
+
     // Fetch any cache we have
     const cache = await getCache("validateCNAMEs");
 
@@ -105,20 +115,20 @@ const validateCNAMEs = async () => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(`${urlHttp} in cache, skipping tests.`);
+            console.log(chalk.blue(`  ${urlHttp} in cache, skipping tests.`));
             tests[cname] = cache[cname];
             continue;
         }
 
         // Run the tests
-        console.log(`Testing ${urlHttp}...`);
+        console.log(chalk.blue(`  Testing ${urlHttp}...`));
         const failedHttp = await testUrl(urlHttp);
         const failedHttps = await testUrl(urlHttps);
 
         // Allow one to fail without care
         if (failedHttp && failedHttps) {
             // Log
-            console.log(`  ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``);
+            console.log(chalk.yellow(`    ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``));
 
             // Save
             const data = cnames[cname];
@@ -128,7 +138,7 @@ const validateCNAMEs = async () => {
             tests[cname] = data;
         } else {
             // Log
-            console.log(`  ...succeeded`);
+            console.log(chalk.green(`    ...succeeded`));
 
             // Save
             const data = cnames[cname];
@@ -147,6 +157,7 @@ const validateCNAMEs = async () => {
         const data = tests[cname];
         if (data.failed) failed[cname] = data;
     }
+    console.log(chalk.greenBright.bold("Testing completed for validateCNAMEs"));
     return failed
 };
 
