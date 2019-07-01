@@ -11,18 +11,12 @@ const octokit = new Octokit();
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
 
-/**
- * @typedef {object} cnameObject
- * @property {string} target - The CNAME target
- * @property {string} [noCF] - The noCF tag (if present) on the record
- * @property {string} [http] - The status of the HTTP test (if failed)
- * @property {string} [https] - The status of the HTTPS test (if failed)
- * @property {boolean} [failed] - If the testing failed
- */
+// Load custom jsdoc types
+require("./types.js");
 
 /**
  * Get all valid CNAME entries from the js.org repository
- * @returns {Promise<Object.<string, cnameObject>>} - Every entry in the CNAMEs file
+ * @returns {Promise<cnamesObject>} - Every entry in the CNAMEs file
  */
 const getCNAMEs = async () => {
     const cache = await getCache("getCNAMEs");
@@ -81,7 +75,7 @@ const testUrl = async url => {
 
 /**
  * Fetches the js.org CNAME entries and then validates each one using a HTTP & HTTPS test
- * @returns {Promise<Object.<string, cnameObject>>} - Any failed CNAME entries
+ * @returns {Promise<cnamesObject>} - Any failed CNAME entries
  */
 const validateCNAMEs = async () => {
     // Get the CNAMEs
