@@ -135,6 +135,12 @@ const entriesToList = cnames => {
  * @returns {Promise<string>}
  */
 const createMainIssue = async failed => {
+    const cache = await getCache("createMainIssue");
+    if (cache) {
+        console.log("Main issue found in cached data.");
+        return cache.html_url;
+    }
+
     // Create new empty issue
     const owner = "js-org-cleanup";
     const repo = "test-repo-1";
@@ -170,6 +176,9 @@ const createMainIssue = async failed => {
         issue_number: issue.data.number,
         body
     });
+
+    // Save to cache
+    await setCache("createMainIssue", issue.data);
 
     // Done
     return issue.data.html_url;
