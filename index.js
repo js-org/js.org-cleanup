@@ -1,7 +1,9 @@
+// Load in our config
+const config = require("./config.json");
+
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest");
-const octokit = new Octokit();
-// TODO: authenticate with dedicated js.org cleanup bot (store token in ignored file)
+const octokit = new Octokit({auth: config.github_token});
 
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
@@ -158,12 +160,30 @@ const createIssue = async () => {
 
     // TODO: Automatically create cleanup issues here (where possible), will inject into a separate CONTACT list
 
-    // Generate new issue
-    const file = await fs.readFileSync("issue_template.md", "utf8");
-    const newFile = file.replace("{{PENDING}}", list.join("\n")).replace("{{CONTACT}}", "");
-    console.log(newFile);
+    // Create new empty issue
+    const owner = "js-org-cleanup";
+    const repo = "test-repo-1";
+    const issue = await octokit.issues.create({
+        owner,
+        repo,
+        title: "JS.ORG CLEANUP"
+    });
 
-    // TODO: Automatically create the main issue
+    // Generate the contents
+    const file = await fs.readFileSync("main_issue.tpl.md", "utf8");
+    const newFile = file
+        .replace(/{{PENDING}}/g, list.join("\n"))
+        .replace(/{{CONTACT}}/g, "")
+        .replace(/{{ISSUE_URL}}/g, issue.data.html_url);
+
+
+    // Edit the issue
+    await octokit.issues.update({
+        owner,
+        repo,
+        issue_number: issue.data.number,
+        body: newFile
+    })
 };
 
 createIssue();
