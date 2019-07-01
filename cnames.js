@@ -105,7 +105,7 @@ const validateCNAMEs = async () => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(`${urlHttp} in cache, skipping.`);
+            console.log(`${urlHttp} in cache, skipping tests.`);
             tests[cname] = cache[cname];
             continue;
         }

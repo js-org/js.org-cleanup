@@ -15,21 +15,29 @@ const fs = require("fs");
 require("./types.js");
 
 /**
+ * Generates the issue body for the cname entry to be contacted
+ * @param {string} cname - The cname of the entry being contacted
+ * @param {cnameObject} data - The data for the cname given
+ * @param {string} issue - The URL of the main cleanup issue
+ * @returns {Promise<string>}
+ */
+const repoContactIssue = async (cname, data, issue) => {
+    const tpl = await fs.readFileSync("templates/contact_issue.md", "utf8");
+    return tpl
+        .replace(/{{CNAME}}/g, cname)
+        .replace(/{{TARGET}}/g, data.target)
+        .replace(/{{HTTP}}/g, data.http)
+        .replace(/{{HTTPS}}/g, data.https)
+        .replace(/{{ISSUE}}/g, issue)
+};
+
+/**
  * Attempt to make contact via GitHub issues on failed cname entries
  * @param {cnamesObject} failed - All failed cname entries to try
  * @param {string} issueUrl - The main issue cleanup URL
  * @returns {Promise<cnamesAttemptedContact>}
  */
 const attemptTargetIssues = async (failed, issueUrl) => {
-    /*
-     * TODO: Automatically create cleanup issues here (where possible)
-     * This will need to have lots of redundancy so we don't spam issues on random repos
-     * Use the cache system to only ever attempt to post on a repo once
-     * Store failure or the issue data if successful
-     * Cache everything!
-     * Return only the successful issue data for use in the {{CONTACT}} list
-     */
-
     // Fetch any cache we have
     const cache = await getCache("attemptTargetIssues");
 
@@ -43,6 +51,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // If in cache, use that
         if (cache && cname in cache) {
+            console.log(`${cname} in cache, skipping automatic contact.`);
             const data = cache[cname];
             if (data.contact) {
                 contact[cname] = data;
@@ -54,22 +63,50 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // Get cname data
         const data = failed[cname];
+        console.log(`Attempting to contact ${cname} (${data.target})...`);
 
         // Regex time
         const reg = new RegExp(/(\S+).github.io(?:\/(\S+))?/g);
         const match = reg.exec(data.target);
         if (!match) {
             // Not a github.io target
+            console.log("  ...failed, not a github target");
             data.contact = false;
             pending[cname] = data;
         } else {
             // Github.io target!
-            // TODO: Set repo if no repo match
-            // TODO: Attempt to create issue
-            data.contact = false;
-            pending[cname] = data;
+            const owner = match[1];
+            const repo = match[2] || `${match[1]}.github.io`;
+
+            // Generate body
+            const body = await repoContactIssue(cname, data, issueUrl);
+
+            // Attempt to create issue
+            let issue;
+            try {
+                issue = await octokit.issues.create({
+                    owner,
+                    repo,
+                    title: "JS.ORG CLEANUP",
+                    body
+                });
+            } catch (err) {
+            }
+
+            // Abort if no issue, else save issue data
+            if (!issue || !issue.data) {
+                console.log("  ...failed, could not create issue");
+                data.contact = false;
+                pending[cname] = data;
+            } else {
+                console.log("  ...succeeded");
+                data.issue = issue.data;
+                data.contact = true;
+                contact[cname] = data;
+            }
         }
 
+        // Cache latest data
         await setCache("attemptTargetIssues", {...pending, ...contact});
     }
 
@@ -87,7 +124,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ""}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
     }
     return list;
 };
@@ -116,18 +153,22 @@ const createMainIssue = async failed => {
     const contactList = entriesToList(contact);
 
     // Generate the contents
-    const file = await fs.readFileSync("main_issue.tpl.md", "utf8");
-    const newFile = file
-        .replace(/{{PENDING}}/g, pendingList.join("\n"))
-        .replace(/{{CONTACT}}/g, contactList.join("\n"))
-        .replace(/{{ISSUE_URL}}/g, issue.data.html_url);
+    const contactIssue = await repoContactIssue(
+        "xxx",
+        {target: "xxx", http: "xxx", https: "xxx"},
+        issue.data.html_url);
+    const tpl = await fs.readFileSync("templates/main_issue.md", "utf8");
+    const body = tpl
+        .replace(/{{PENDING_LIST}}/g, pendingList.join("\n"))
+        .replace(/{{CONTACT_LIST}}/g, contactList.join("\n"))
+        .replace(/{{CONTACT_ISSUE}}/g, contactIssue);
 
     // Edit the issue
     await octokit.issues.update({
         owner,
         repo,
         issue_number: issue.data.number,
-        body: newFile
+        body
     });
 
     // Done

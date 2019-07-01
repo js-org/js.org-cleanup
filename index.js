@@ -22,6 +22,18 @@ const createIssue = async () => {
         https: "Failed with status code '404 Not Found'",
         failed: true
     };
+    failed["test-other"] = {
+        target: "js-org-cleanup.github.io/test-repo-3",
+        http: "Failed with status code '404 Not Found'",
+        https: "Failed with status code '404 Not Found'",
+        failed: true
+    };
+    failed["test-gone"] = {
+        target: "js-org-cleanup.github.io",
+        http: "Failed with status code '404 Not Found'",
+        https: "Failed with status code '404 Not Found'",
+        failed: true
+    };
     failed["custom"] = {
         target: "custom-target.test.com",
         http: "Failed with status code '404 Not Found'",
