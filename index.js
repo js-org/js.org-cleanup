@@ -25,6 +25,36 @@ if (!String.prototype.format) {
 }
 
 /**
+ * Fetch cached data for the given function name
+ * @param {string} name - Function name for cache
+ * @returns {Promise<?*> | ?*}
+ */
+const getCache = async name => {
+    const path = `cache/${name}.json`;
+    if (!fs.existsSync(path)) return;
+    const file = await fs.readFileSync(path, "utf8");
+    if (!file) return;
+    const data = JSON.parse(file);
+    if (!data) return;
+    return data;
+};
+
+/**
+ * Sets the cached data for a given function name
+ * @param {string} name - The function name to cache data for
+ * @param {*} contents - The data to store
+ * @returns {Promise<void>}
+ */
+const setCache = async (name, contents) => {
+    if (!fs.existsSync("cache/")) {
+        await fs.mkdirSync("cache")
+    }
+    const path = `cache/${name}.json`;
+    const data = JSON.stringify(contents);
+    await fs.writeFileSync(path, data);
+};
+
+/**
  * @typedef {object} cnameObject
  * @property {string} target - The CNAME target
  * @property {string} [noCF] - The noCF tag (if present) on the record
@@ -37,7 +67,11 @@ if (!String.prototype.format) {
  * @returns {Promise<Object.<string, cnameObject>>} - Every entry in the CNAMEs file
  */
 const getCNAMEs = async () => {
-    // TODO: load from cache/getCNAMEs.json if present
+    const cache = await getCache("getCNAMEs");
+    if (cache) {
+        console.log("Cached data found for getCNAMEs");
+        return cache;
+    }
 
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
@@ -60,7 +94,8 @@ const getCNAMEs = async () => {
         }
     }
 
-    // TODO: save data to cache/getCNAMEs.json
+    // Save to cache
+    await setCache("getCNAMEs", cnames);
 
     // Done
     return cnames
@@ -91,7 +126,11 @@ const testUrl = async url => {
  * @returns {Promise<Object.<string, cnameObject>>} - Any failed CNAME entries
  */
 const validateCNAMEs = async () => {
-    // TODO: load from cache/validateCNAMEs.json if present
+    const cache = await getCache("validateCNAMEs");
+    if (cache) {
+        console.log("Cached data found for validateCNAMEs");
+        return cache;
+    }
 
     // Get the CNAMEs
     const cnames = await getCNAMEs();
@@ -137,7 +176,8 @@ const validateCNAMEs = async () => {
         console.log(`  ...succeeded`);
     }
 
-    // TODO: save data to cache/validateCNAMEs.json
+    // Save to cache
+    await setCache("validateCNAMEs", failed);
 
     // Done
     return failed
