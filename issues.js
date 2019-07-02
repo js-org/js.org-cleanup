@@ -22,16 +22,19 @@ require("./types.js");
  * @param {string} cname - The cname of the entry being contacted
  * @param {cnameObject} data - The data for the cname given
  * @param {string} issue - The URL of the main cleanup issue
+ * @param {boolean} robot - Indicates the robot disclaimer should be applied
  * @returns {Promise<string>}
  */
-const repoContactIssue = async (cname, data, issue) => {
-    const tpl = await fs.readFileSync("templates/contact_issue.md", "utf8");
-    return tpl
+const repoContactIssue = async (cname, data, issue, robot) => {
+    const robotDisclaimer = `_Beep boop. I am a robot and performed this action automatically as part of the js.org cleanup process. If you have an issue, please contact the [js.org maintainers](https://github.com/${config.repository_owner}/${config.repository_name}/issues/new)._`;
+    const template = await fs.readFileSync("templates/contact_issue.md", "utf8");
+    const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
         .replace(/{{HTTP}}/g, data.http)
         .replace(/{{HTTPS}}/g, data.https)
         .replace(/{{ISSUE}}/g, issue)
+    return `${body}${robot ? `\n\n${robotDisclaimer}` : ""}`;
 };
 
 /**
@@ -93,7 +96,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             const repo = match[2] || `${match[1]}.github.io`;
 
             // Generate body
-            const body = await repoContactIssue(cname, data, issueUrl);
+            const body = await repoContactIssue(cname, data, issueUrl, true);
 
             // Attempt to create issue
             let issue;
@@ -185,7 +188,8 @@ const createMainIssue = async failed => {
     const contactIssue = await repoContactIssue(
         "xxx",
         {target: "xxx", http: "xxx", https: "xxx"},
-        issue.data.html_url);
+        issue.data.html_url,
+        false);
     const tpl = await fs.readFileSync("templates/main_issue.md", "utf8");
     const body = tpl
         .replace(/{{PENDING_LIST}}/g, pendingList.join("\n"))

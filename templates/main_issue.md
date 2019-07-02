@@ -31,7 +31,7 @@ All domains in this list have not been contacted by the maintainers of js.org ye
 
 ## Contact Made
 
-All domains in this list have had contact made (issue raised on relevant repository etc.) by the js.org maintainers.
+All domains in this list have had contact made (issue raised on relevant repository etc.) by the js.org maintainers or the cleanup robot.
 
 - [ ] -
 {{CONTACT_LIST}}
