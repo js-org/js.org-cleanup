@@ -4,6 +4,9 @@ const {getCache, setCache} = require("./cache.js");
 // Load in our config
 const config = require("./config.json");
 
+// Load in CNAME operation
+const {validateCNAMEs} = require("./cnames.js");
+
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest");
 const octokit = new Octokit({auth: config.github_token});
@@ -216,5 +219,52 @@ const createMainIssue = async failed => {
     return issue.data.html_url;
 };
 
+/**
+ * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
+ */
+const createIssue = async () => {
+    // Get the failed CNAMEs
+    const failed = await validateCNAMEs();
+
+    // DEV: custom test failed record
+    if (config.dev_fake_cnames) {
+        // Clear out all the real cnames
+        for (const cname in failed) {
+            if (!failed.hasOwnProperty(cname)) continue;
+            delete failed[cname];
+        }
+        // Should be able to create automatic contact issue
+        failed["test"] = {
+            target: "js-org-cleanup.github.io/test-repo-2",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // Issues disabled on repo, automatic should fail
+        failed["test-other"] = {
+            target: "js-org-cleanup.github.io/test-repo-3",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // Repo doesn't exist, should fail on automatic contact
+        failed["test-gone"] = {
+            target: "js-org-cleanup.github.io",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // External domain, shouldn't try automatic contact
+        failed["custom"] = {
+            target: "custom-target.test.com",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+    }
+
+    console.log(await createMainIssue(failed));
+};
+
 // Export
-module.exports = {createMainIssue};
+module.exports = {createIssue};

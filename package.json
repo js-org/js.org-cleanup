@@ -4,7 +4,8 @@
   "description": "The script behind the annual js.org cleanup process",
   "main": "index.js",
   "scripts": {
-    "run": "node index.js"
+    "main": "node index.js --main",
+    "perfect": "node index.js --perfect"
   },
   "repository": {
     "type": "git",

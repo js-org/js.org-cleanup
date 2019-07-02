@@ -1,63 +1,50 @@
-// Load in our config
-const config = require("./config.json");
+// Load in chalk for logging
+const chalk = require("chalk");
 
 // Load in CNAME operation
-const {perfectCNAMEsFile, validateCNAMEs} = require("./cnames.js");
+const {perfectCNAMEsFile} = require("./cnames.js");
 
 // Load in issue operations
-const {createMainIssue} = require("./issues.js");
+const {createIssue} = require("./issues.js");
 
 /**
- * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
+ * Show an error message in console explaining the command line argument choices
  */
-const createIssue = async () => {
-    // Get the failed CNAMEs
-    const failed = await validateCNAMEs();
-
-    // DEV: custom test failed record
-    if (config.dev_fake_cnames) {
-        // Clear out all the real cnames
-        for (const cname in failed) {
-            if (!failed.hasOwnProperty(cname)) continue;
-            delete failed[cname];
-        }
-        // Should be able to create automatic contact issue
-        failed["test"] = {
-            target: "js-org-cleanup.github.io/test-repo-2",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // Issues disabled on repo, automatic should fail
-        failed["test-other"] = {
-            target: "js-org-cleanup.github.io/test-repo-3",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // Repo doesn't exist, should fail on automatic contact
-        failed["test-gone"] = {
-            target: "js-org-cleanup.github.io",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // External domain, shouldn't try automatic contact
-        failed["custom"] = {
-            target: "custom-target.test.com",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-    }
-
-    console.log(await createMainIssue(failed));
+const showArgsError = () => {
+    console.log(chalk.red("\nPlease provide one of the following command line arguments to run the cleanup script:"));
+    console.log(chalk.red("  --main    : Initiates the annual cleanup by creating the main cleanup issue"));
+    console.log(chalk.red("  --perfect : Generates a perfectly formatted and sorted cnames_active file"));
+    console.log(chalk.redBright.bold("\nCleanup script aborted"));
 };
 
-perfectCNAMEsFile();
+/**
+ * Run the scripts based on command line argument provided
+ * @returns {Promise<void>}
+ */
+const main = async () => {
+    // Get args w/o node & file
+    const args = process.argv.slice(2);
 
-// TODO: as a secondary feature of the script, have just a file cleanup method
-// TODO: will just parse all cnames, header/footer of the file, then generate perfectly formatted new file & pr
+    // Validate args length
+    if (!args) {
+        showArgsError();
+        return;
+    }
+
+    // Handle the args
+    switch (args[0]) {
+        case "--main":
+            await createIssue();
+            break;
+        case "--perfect":
+            await perfectCNAMEsFile();
+            break;
+        default:
+            showArgsError();
+    }
+};
+
+main();
 
 // TODO: parse issue to detect entries that were not ticked
 // TODO: remove un-ticked entries from the cnames_active file
