@@ -1,0 +1,8 @@
+{
+  "github_token": "<personal access token for GitHub API>",
+  "repository_owner": "<target repo owner for cleanup>",
+  "repository_name": "<target repo name for cleanup>",
+  "automatic_contact": true,
+  "dev_restrict_cname_count": false,
+  "dev_fake_cnames": false
+}

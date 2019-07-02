@@ -1,6 +1,9 @@
 // Load in custom caching
 const {getCache, setCache} = require("./cache.js");
 
+// Load in our config
+const config = require("./config.json");
+
 // Load in string formatting
 require("./string.js");
 
@@ -34,8 +37,8 @@ const getCNAMEs = async () => {
 
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
-        owner: "js-org",
-        repo: "js.org",
+        owner: config.repository_owner,
+        repo: config.repository_name,
         path: "cnames_active.js"
     });
 
@@ -100,10 +103,12 @@ const validateCNAMEs = async () => {
     const tests = {};
 
     // DEV: only test the first few
-    /*const slice = Object.keys(cnames).slice(10);
-    for (const key in slice) {
-        delete cnames[slice[key]];
-    }*/
+    if (config.dev_restrict_cname_count) {
+        const slice = Object.keys(cnames).slice(10);
+        for (const key in slice) {
+            delete cnames[slice[key]];
+        }
+    }
 
     // Test each entry
     let counter = 0;

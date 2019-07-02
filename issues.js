@@ -165,20 +165,24 @@ const createMainIssue = async failed => {
     }
 
     // Create new empty issue (change this for DEV)
-    const owner = "js-org";
-    const repo = "js.org";
     const issue = await octokit.issues.create({
-        owner,
-        repo,
+        owner: config.repository_owner,
+        repo: config.repository_name,
         title: "JS.ORG CLEANUP",
         body: "Automatic initial cleanup contact in progress... this issue will be updated shortly."
     });
 
-    // Attempt automatic contact
-    const {pending, contact} = await attemptTargetIssues(failed, issue.data.html_url);
+    let pending = failed;
+    let contact = {};
+    if (config.automatic_contact) {
+        // Attempt automatic contact
+        const res = await attemptTargetIssues(failed, issue.data.html_url);
+        pending = res.pending;
+        contact = res.contact;
 
-    // Log
-    console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
+        // Log resume
+        console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
+    }
 
     // Convert them to MD list
     const pendingList = entriesToList(pending);
@@ -198,8 +202,8 @@ const createMainIssue = async failed => {
 
     // Edit the issue
     await octokit.issues.update({
-        owner,
-        repo,
+        owner: config.repository_owner,
+        repo: config.repository_name,
         issue_number: issue.data.number,
         body
     });
