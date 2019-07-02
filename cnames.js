@@ -1,6 +1,9 @@
 // Load in custom caching
 const {getCache, setCache} = require("./cache.js");
 
+// Load in robot
+const {robotDisclaimer} = require("./issues.js");
+
 // Load in our config
 const config = require("./config.json");
 
@@ -8,8 +11,8 @@ const config = require("./config.json");
 require("./string.js");
 
 // Load in Octokit for GitHub API
-const Octokit = require("@octokit/rest");
-const octokit = new Octokit();
+const Octokit = require("@octokit/rest").plugin(require("octokit-create-pull-request"));
+const octokit = new Octokit({auth: config.github_token});
 
 // Load in fetch for URL testing
 const fetch = require("node-fetch");
@@ -135,13 +138,26 @@ const perfectCNAMEsFile = async () => {
         return;
     }
 
-    // Output to file
-    // TODO: Fork (or branch for test repo), make changes & PR
-    await fs.writeFileSync("cnames_active.js", newFile);
+    // Create fork, commit & PR
+    console.log(chalk.yellow("  Changes are required to make the file perfect"));
+    console.log(chalk.blue("  Creating pull request with changes..."));
+    const pr = await octokit.createPullRequest({
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        title: "Cleanup: Perfect Format & Sorting",
+        body: `This pull request cleans up the cnames_active.js file by ensuring the formatting and sorting is perfect.${await robotDisclaimer()}`,
+        head: "cleanup-perfect",
+        changes: {
+            files: {
+                "cnames_active.js": newFile
+            },
+            commit: "Cleanup: Perfect Format & Sorting"
+        }
+    });
+    // TODO: Link to PR in console - waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13
+    //  console.log(pr);
 
     // Log
-    console.log(chalk.yellow("  Changes are required to make the file perfect"));
-    console.log(chalk.blue("  Prefect file saved to cnames_active.js"));
     console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
 };
 
