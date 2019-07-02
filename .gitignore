@@ -2,3 +2,4 @@
 node_modules
 cache
 config.json
+cnames_active.js

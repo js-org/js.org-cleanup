@@ -76,12 +76,16 @@ const getCNAMEs = async () => {
     return cnames
 };
 
+/**
+ * Generates a perfect cnames_active.js file
+ * @returns {Promise<void>}
+ */
 const perfectCNAMEsFile = async () => {
-    // Get the raw cnames file
-    const file = await getCNAMEsFile();
-
     // Log
     console.log(chalk.cyanBright.bold("\nStarting perfectCNAMEsFile process"));
+
+    // Get the raw cnames file
+    const file = await getCNAMEsFile();
 
     // Regex time to find the top/bottom comment blocks
     const reg = new RegExp(/(\/\*[\S\s]+?\*\/)/g);
@@ -91,8 +95,20 @@ const perfectCNAMEsFile = async () => {
         commentBlocks.push(match[1]);
     }
 
+    // Abort if couldn't find the top/bottom blocks
+    if (commentBlocks.length < 2) {
+        // Log
+        console.log(chalk.yellow("  Could not locate top & bottom comment blocks in raw file"));
+        console.log(chalk.redBright.bold("Generation aborted for perfectCNAMEsFile"));
+        return;
+    }
+    console.log(chalk.blue("  Comment blocks located in existing raw file"));
+
     // Get the raw cnames
     const cnamesRaw = await getCNAMEs();
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming perfectCNAMEsFile process"));
 
     // Get perfect alphabetical order
     const cnamesKeys = Object.keys(cnamesRaw);
@@ -113,14 +129,20 @@ const perfectCNAMEsFile = async () => {
     // Compare
     if (newFile == file) {
         // Log
-        console.log(chalk.yellow("  Existing file is already perfect, no changes."));
+        console.log(chalk.yellow("  Existing file is already perfect, no changes"));
         console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
         // Done
         return;
     }
 
-    // Dump to file for now
-    await fs.writeFileSync("test.js", newFile);
+    // Output to file
+    // TODO: Fork (or branch for test repo), make changes & PR
+    await fs.writeFileSync("cnames_active.js", newFile);
+
+    // Log
+    console.log(chalk.yellow("  Changes are required to make the file perfect"));
+    console.log(chalk.blue("  Prefect file saved to cnames_active.js"));
+    console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
 };
 
 /**
