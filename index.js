@@ -2,7 +2,7 @@
 const config = require("./config.json");
 
 // Load in CNAME operation
-const {validateCNAMEs} = require("./cnames.js");
+const {perfectCNAMEsFile, validateCNAMEs} = require("./cnames.js");
 
 // Load in issue operations
 const {createMainIssue} = require("./issues.js");
@@ -54,7 +54,7 @@ const createIssue = async () => {
     console.log(await createMainIssue(failed));
 };
 
-createIssue();
+perfectCNAMEsFile();
 
 // TODO: as a secondary feature of the script, have just a file cleanup method
 // TODO: will just parse all cnames, header/footer of the file, then generate perfectly formatted new file & pr

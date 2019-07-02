@@ -17,8 +17,27 @@ const fetch = require("node-fetch");
 // Load in chalk for logging
 const chalk = require("chalk");
 
+// Load in fs to write new file
+const fs = require("fs");
+
 // Load custom jsdoc types
 require("./types.js");
+
+/**
+ * Fetches the raw cnames_active file from the configured repository
+ * @returns {Promise<string>}
+ */
+const getCNAMEsFile = async () => {
+    // Get the raw GitHub API data
+    const req = await octokit.repos.getContents({
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        path: "cnames_active.js"
+    });
+
+    // Get the contents of the file
+    return Buffer.from(req.data.content, req.data.encoding).toString();
+};
 
 /**
  * Get all valid CNAME entries from the js.org repository
@@ -35,15 +54,8 @@ const getCNAMEs = async () => {
         return cache;
     }
 
-    // Get the raw GitHub API data
-    const req = await octokit.repos.getContents({
-        owner: config.repository_owner,
-        repo: config.repository_name,
-        path: "cnames_active.js"
-    });
-
-    // Get the contents of the file
-    const file = Buffer.from(req.data.content, req.data.encoding).toString();
+    // Get the raw cnames file
+    const file = await getCNAMEsFile();
 
     // Regex time
     const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(.+)?[ \t]*\n/g);
@@ -62,6 +74,53 @@ const getCNAMEs = async () => {
     // Done
     console.log(chalk.greenBright.bold("Fetching completed for getCNAMEs"));
     return cnames
+};
+
+const perfectCNAMEsFile = async () => {
+    // Get the raw cnames file
+    const file = await getCNAMEsFile();
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting perfectCNAMEsFile process"));
+
+    // Regex time to find the top/bottom comment blocks
+    const reg = new RegExp(/(\/\*[\S\s]+?\*\/)/g);
+    const commentBlocks = [];
+    let match;
+    while ((match = reg.exec(file)) !== null) {
+        commentBlocks.push(match[1]);
+    }
+
+    // Get the raw cnames
+    const cnamesRaw = await getCNAMEs();
+
+    // Get perfect alphabetical order
+    const cnamesKeys = Object.keys(cnamesRaw);
+    cnamesKeys.sort();
+
+    // Generate the new file entries
+    const cnamesList = [];
+    for (const i in cnamesKeys) {
+        const cname = cnamesKeys[i];
+        const data = cnamesRaw[cname];
+        cnamesList.push(`  "${cname}": "${data.target}"${i == cnamesKeys.length - 1 ? "" : ","}${data.noCF ? ` ${data.noCF}` : ""}`)
+    }
+    const cnames = cnamesList.join("\n");
+
+    // Format into the new file
+    const newFile = `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnames}\n  ${commentBlocks[1]}\n}\n`;
+
+    // Compare
+    if (newFile == file) {
+        // Log
+        console.log(chalk.yellow("  Existing file is already perfect, no changes."));
+        console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
+        // Done
+        return;
+    }
+
+    // Dump to file for now
+    await fs.writeFileSync("test.js", newFile);
 };
 
 /**
@@ -177,4 +236,4 @@ const validateCNAMEs = async () => {
 };
 
 // Export
-module.exports = {getCNAMEs, validateCNAMEs};
+module.exports = {perfectCNAMEsFile, validateCNAMEs};
