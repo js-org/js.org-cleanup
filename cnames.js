@@ -41,9 +41,10 @@ const getCNAMEsFile = async () => {
 
 /**
  * Get all valid CNAME entries from the js.org repository
+ * @param {string} [file] - The cnames file to use (will fetch if not provided)
  * @returns {Promise<cnamesObject>} - Every entry in the CNAMEs file
  */
-const getCNAMEs = async () => {
+const getCNAMEs = async (file) => {
     // Log
     console.log(chalk.cyanBright.bold("\nStarting getCNAMEs process"));
 
@@ -55,7 +56,7 @@ const getCNAMEs = async () => {
     }
 
     // Get the raw cnames file
-    const file = await getCNAMEsFile();
+    if (!file) file = await getCNAMEsFile();
 
     // Regex time
     const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(.+)?[ \t]*\n/g);
@@ -77,15 +78,14 @@ const getCNAMEs = async () => {
 };
 
 /**
- * Generates a perfect cnames_active.js file
- * @returns {Promise<void>}
+ * Create a perfectly formatted cnames_active file based on the data provided
+ * @param {cnamesObject} cnames - The cnames data to use in the file
+ * @param {string} [file] - The cnames file to use (will fetch if not provided)
+ * @returns {Promise<?string> | ?string}
  */
-const perfectCNAMEsFile = async () => {
-    // Log
-    console.log(chalk.cyanBright.bold("\nStarting perfectCNAMEsFile process"));
-
+const generateCNAMEsFile = async (cnames, file) => {
     // Get the raw cnames file
-    const file = await getCNAMEsFile();
+    if (!file) file = await getCNAMEsFile();
 
     // Regex time to find the top/bottom comment blocks
     const reg = new RegExp(/(\/\*[\S\s]+?\*\/)/g);
@@ -104,27 +104,38 @@ const perfectCNAMEsFile = async () => {
     }
     console.log(chalk.blue("  Comment blocks located in existing raw file"));
 
-    // Get the raw cnames
-    const cnamesRaw = await getCNAMEs();
-
-    // Log
-    console.log(chalk.cyanBright.bold("\nResuming perfectCNAMEsFile process"));
-
     // Get perfect alphabetical order
-    const cnamesKeys = Object.keys(cnamesRaw);
+    const cnamesKeys = Object.keys(cnames);
     cnamesKeys.sort();
 
     // Generate the new file entries
     const cnamesList = [];
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
-        const data = cnamesRaw[cname];
+        const data = cnames[cname];
         cnamesList.push(`  "${cname}": "${data.target}"${i == cnamesKeys.length - 1 ? "" : ","}${data.noCF ? ` ${data.noCF}` : ""}`)
     }
-    const cnames = cnamesList.join("\n");
 
     // Format into the new file
-    const newFile = `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnames}\n  ${commentBlocks[1]}\n}\n`;
+    return `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
+};
+
+/**
+ * Generates a perfect cnames_active.js file
+ * @returns {Promise<void>}
+ */
+const perfectCNAMEsFile = async () => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting perfectCNAMEsFile process"));
+
+    // Get the original file
+    const file = await getCNAMEsFile();
+
+    // Get the raw cnames
+    const cnames = await getCNAMEs(file);
+
+    // Get the new file
+    const newFile = await generateCNAMEsFile(cnames, file);
 
     // Compare
     if (newFile == file) {
@@ -271,4 +282,4 @@ const validateCNAMEs = async () => {
 };
 
 // Export
-module.exports = {perfectCNAMEsFile, validateCNAMEs};
+module.exports = {getCNAMEsFile, getCNAMEs, generateCNAMEsFile, perfectCNAMEsFile, validateCNAMEs};

@@ -257,7 +257,7 @@ const parseIssueEntries = async issueNumber => {
     const cache = await getCache("parseIssueCNAMEs");
     if (cache && issueNumber in cache) {
         console.log(chalk.greenBright.bold(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`));
-        return cache[issueNumber]; // TODO: whatever this actually needs to return
+        return cache[issueNumber];
     }
 
     // Get the issue body
@@ -269,13 +269,42 @@ const parseIssueEntries = async issueNumber => {
 
     // Regex time
     const reg = new RegExp(/- \[ ] \*\*(\S+?)\*\* > (\S+)\n/g);
-    const cnames = [];
+    const badCNAMEs = [];
     let match;
     while ((match = reg.exec(issue.data.body)) !== null) {
-        cnames.push(match[1]);
+        badCNAMEs.push(match[1]);
     }
-    console.log(cnames);
+
+    // Cache
+    cache[issueNumber] = badCNAMEs;
+    await setCache("parseIssueCNAMEs", cache);
+
+    // Done
+    console.log(chalk.greenBright.bold("Fetching completed for parseIssueCNAMEs"));
+    return badCNAMEs;
 };
+
+/*
+    // Get the file so we only need to fetch once
+    const file = await getCNAMEsFile();
+
+    // Fetch all cname data
+    const allCNAMEs = await getCNAMEs(file);
+
+    // Generate new cname data w/o bad cnames
+    const newCNAMEs = {};
+    for (const cname in allCNAMEs) {
+        if (!allCNAMEs.hasOwnProperty(cname)) continue;
+        if (cname in badCNAMEs) {
+            console.log(chalk.green(`  Removed ${cname} from cnames_active`));
+            continue;
+        }
+        newCNAMEs[cname] = allCNAMEs[cname];
+    }
+
+    // Generate new cnames_active
+    const cnamesActive = await generateCNAMEsFile(newCNAMEs, file);
+*/
 
 // Export
 module.exports = {createIssue, parseIssueEntries};
