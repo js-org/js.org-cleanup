@@ -249,5 +249,33 @@ const createIssue = async () => {
     console.log(await createMainIssue(failed));
 };
 
+const parseIssueEntries = async issueNumber => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting parseIssueCNAMEs process"));
+
+    // Fetch any cache we have
+    const cache = await getCache("parseIssueCNAMEs");
+    if (cache && issueNumber in cache) {
+        console.log(chalk.greenBright.bold(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`));
+        return cache[issueNumber]; // TODO: whatever this actually needs to return
+    }
+
+    // Get the issue body
+    const issue = await octokit.issues.get({
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        issue_number: issueNumber
+    });
+
+    // Regex time
+    const reg = new RegExp(/- \[ ] \*\*(\S+?)\*\* > (\S+)\n/g);
+    const cnames = [];
+    let match;
+    while ((match = reg.exec(issue.data.body)) !== null) {
+        cnames.push(match[1]);
+    }
+    console.log(cnames);
+};
+
 // Export
-module.exports = {createIssue};
+module.exports = {createIssue, parseIssueEntries};

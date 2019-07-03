@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const {perfectCNAMEsFile} = require("./cnames.js");
 
 // Load in issue operations
-const {createIssue} = require("./issues.js");
+const {createIssue, parseIssueEntries} = require("./issues.js");
 
 /**
  * Show an error message in console explaining the command line argument choices
@@ -44,7 +44,8 @@ const main = async () => {
     }
 };
 
-main();
+//main();
+parseIssueEntries(35);
 
 // TODO: parse issue to detect entries that were not ticked
 // TODO: remove un-ticked entries from the cnames_active file
