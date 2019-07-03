@@ -71,8 +71,6 @@ const perfectCNAMEsFile = async () => {
             commit: "Cleanup: Perfect Format & Sorting"
         }
     });
-    // TODO: Link to PR in console - waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13
-    //  console.log(pr);
 
     // Reset cache
     console.log(chalk.green("    ...pull request created"));
@@ -82,8 +80,15 @@ const perfectCNAMEsFile = async () => {
 
     // Done
     console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
+    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
+    /*return pr.data.html_url;*/
 };
 
+/**
+ * Creates the main cleanup process final pull request based on the given cleanup issue number
+ * @param {int} issueNumber - The cleanup issue to parse for bad cname entries
+ * @returns {Promise<void>}
+ */
 const mainCleanupPull = async issueNumber => {
     // Log
     console.log(chalk.cyanBright.bold("\nStarting mainCleanupPull process"));

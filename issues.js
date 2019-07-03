@@ -251,6 +251,11 @@ const createMainIssue = async () => {
     return issue.data.html_url;
 };
 
+/**
+ * Parses the given GitHub issue and returns all unchecked cleanup cname entries
+ * @param {int} issueNumber - The cleanup issue to scan
+ * @returns {Promise<Array<string>>}
+ */
 const parseIssueEntries = async issueNumber => {
     // Log
     console.log(chalk.cyanBright.bold("\nStarting parseIssueCNAMEs process"));
