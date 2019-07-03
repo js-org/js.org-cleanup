@@ -1,8 +1,8 @@
 // Load in custom caching
 const {getCache, setCache} = require("./cache.js");
 
-// Load in robot
-const {robotDisclaimer} = require("./issues.js");
+// Load in templates
+const {robotDisclaimer} = require("./templates.js");
 
 // Load in our config
 const config = require("./config.json");
@@ -19,9 +19,6 @@ const fetch = require("node-fetch");
 
 // Load in chalk for logging
 const chalk = require("chalk");
-
-// Load in fs to write new file
-const fs = require("fs");
 
 // Load custom jsdoc types
 require("./types.js");
