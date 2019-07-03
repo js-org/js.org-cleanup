@@ -284,27 +284,5 @@ const parseIssueEntries = async issueNumber => {
     return badCNAMEs;
 };
 
-/*
-    // Get the file so we only need to fetch once
-    const file = await getCNAMEsFile();
-
-    // Fetch all cname data
-    const allCNAMEs = await getCNAMEs(file);
-
-    // Generate new cname data w/o bad cnames
-    const newCNAMEs = {};
-    for (const cname in allCNAMEs) {
-        if (!allCNAMEs.hasOwnProperty(cname)) continue;
-        if (cname in badCNAMEs) {
-            console.log(chalk.green(`  Removed ${cname} from cnames_active`));
-            continue;
-        }
-        newCNAMEs[cname] = allCNAMEs[cname];
-    }
-
-    // Generate new cnames_active
-    const cnamesActive = await generateCNAMEsFile(newCNAMEs, file);
-*/
-
 // Export
 module.exports = {createIssue, parseIssueEntries};

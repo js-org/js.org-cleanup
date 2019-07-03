@@ -1,8 +1,8 @@
 // Load in chalk for logging
 const chalk = require("chalk");
 
-// Load in CNAME operation
-const {perfectCNAMEsFile} = require("./cnames.js");
+// Load in pr actions
+const {perfectCNAMEsFile} = require("./prs.js");
 
 // Load in issue operations
 const {createIssue, parseIssueEntries} = require("./issues.js");
@@ -46,7 +46,3 @@ const main = async () => {
 
 //main();
 parseIssueEntries(35);
-
-// TODO: parse issue to detect entries that were not ticked
-// TODO: remove un-ticked entries from the cnames_active file
-// TODO: create PR to update cnames_active file (ref issue)
