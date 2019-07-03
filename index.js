@@ -5,7 +5,7 @@ const chalk = require("chalk");
 const {perfectCNAMEsFile, mainCleanupPull} = require("./prs.js");
 
 // Load in issue operations
-const {createIssue} = require("./issues.js");
+const {createMainIssue} = require("./issues.js");
 
 /**
  * Show an error message in console explaining the command line argument choices
@@ -38,7 +38,7 @@ const run = async () => {
             await perfectCNAMEsFile();
             break;
         case "--main-issue":
-            await createIssue();
+            console.log(await createMainIssue());
             break;
         case "--main-pr":
             if (args.length >= 2) {

@@ -1,3 +1,6 @@
+// Load in custom caching
+const {removeCache} = require("./cache.js");
+
 // Load in templates
 const {robotDisclaimer, mainPullRequest} = require("./templates.js");
 
@@ -34,12 +37,21 @@ const perfectCNAMEsFile = async () => {
     // Get the new file
     const newFile = await generateCNAMEsFile(cnames, file);
 
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming perfectCNAMEsFile process"));
+
     // Compare
     if (newFile == file) {
         // Log
         console.log(chalk.yellow("  Existing file is already perfect, no changes"));
-        console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
+
+        // Reset cache
+        console.log(chalk.blue("  Purging cache before completion"));
+        await removeCache("getCNAMEs");
+        await removeCache("generateCNAMEsFile");
+
         // Done
+        console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
         return;
     }
 
@@ -62,7 +74,13 @@ const perfectCNAMEsFile = async () => {
     // TODO: Link to PR in console - waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13
     //  console.log(pr);
 
-    // Log
+    // Reset cache
+    console.log(chalk.green("    ...pull request created"));
+    console.log(chalk.blue("  Purging cache before completion"));
+    await removeCache("getCNAMEs");
+    await removeCache("generateCNAMEsFile");
+
+    // Done
     console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
 };
 
@@ -130,6 +148,12 @@ const mainCleanupPull = async issueNumber => {
     // Save to cache
     // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
     /*await setCache("mainCleanupPull", pr.data);*/
+
+    // Reset cache
+    console.log(chalk.green("    ...pull request created"));
+    console.log(chalk.blue("  Purging cache before completion"));
+    await removeCache("getCNAMEs");
+    await removeCache("parseIssueCNAMEs");
 
     // Done
     console.log(chalk.greenBright.bold("Generation completed for mainCleanupPull"));

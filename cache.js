@@ -31,5 +31,16 @@ const setCache = async (name, contents) => {
     await fs.writeFileSync(path, data);
 };
 
+/**
+ * Removes the cached for a given function name
+ * @param {string} name - The function name to remove cache for
+ * @returns {Promise<void>}
+ */
+const removeCache = async name => {
+    const path = `cache/${name}.json`;
+    if (!fs.existsSync(path)) return;
+    await fs.unlinkSync(path);
+};
+
 // Export
-module.exports = {getCache, setCache};
+module.exports = {getCache, setCache, removeCache};

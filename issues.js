@@ -1,5 +1,5 @@
 // Load in custom caching
-const {getCache, setCache} = require("./cache.js");
+const {getCache, setCache, removeCache} = require("./cache.js");
 
 // Load in our config
 const config = require("./config.json");
@@ -135,11 +135,10 @@ const entriesToList = cnames => {
 };
 
 /**
- * Create the main cleanup issue on the js.org repository
- * @param {cnamesObject} failed - All failed cname entries for the issue lists
+ * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
  * @returns {Promise<string>}
  */
-const createMainIssue = async failed => {
+const createMainIssue = async () => {
     // Log
     console.log(chalk.cyanBright.bold("\nStarting createMainIssue process"));
 
@@ -149,6 +148,49 @@ const createMainIssue = async failed => {
         console.log(chalk.greenBright.bold("Cached data found for createMainIssue"));
         return cache.html_url;
     }
+
+    // Get the failed CNAMEs
+    const failed = await validateCNAMEs();
+
+    // DEV: custom test failed record
+    if (config.dev_fake_cnames) {
+        // Clear out all the real cnames
+        for (const cname in failed) {
+            if (!failed.hasOwnProperty(cname)) continue;
+            delete failed[cname];
+        }
+        // Should be able to create automatic contact issue
+        failed["test"] = {
+            target: "js-org-cleanup.github.io/test-repo-2",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // Issues disabled on repo, automatic should fail
+        failed["test-other"] = {
+            target: "js-org-cleanup.github.io/test-repo-3",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // Repo doesn't exist, should fail on automatic contact
+        failed["test-gone"] = {
+            target: "js-org-cleanup.github.io",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+        // External domain, shouldn't try automatic contact
+        failed["custom"] = {
+            target: "custom-target.test.com",
+            http: "Failed with status code '404 Not Found'",
+            https: "Failed with status code '404 Not Found'",
+            failed: true
+        };
+    }
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
 
     // Create new empty issue (change this for DEV)
     const issue = await octokit.issues.create({
@@ -197,56 +239,16 @@ const createMainIssue = async failed => {
     // Save to cache
     await setCache("createMainIssue", issue.data);
 
+    // Reset cache
+    console.log(chalk.green("  Issue updated with full list"));
+    console.log(chalk.blue("  Purging cache before completion"));
+    await removeCache("getCNAMEs");
+    await removeCache("validateCNAMEs");
+    await removeCache("attemptTargetIssues");
+
     // Done
     console.log(chalk.greenBright.bold("Issue creation completed for createMainIssue"));
     return issue.data.html_url;
-};
-
-/**
- * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
- */
-const createIssue = async () => {
-    // Get the failed CNAMEs
-    const failed = await validateCNAMEs();
-
-    // DEV: custom test failed record
-    if (config.dev_fake_cnames) {
-        // Clear out all the real cnames
-        for (const cname in failed) {
-            if (!failed.hasOwnProperty(cname)) continue;
-            delete failed[cname];
-        }
-        // Should be able to create automatic contact issue
-        failed["test"] = {
-            target: "js-org-cleanup.github.io/test-repo-2",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // Issues disabled on repo, automatic should fail
-        failed["test-other"] = {
-            target: "js-org-cleanup.github.io/test-repo-3",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // Repo doesn't exist, should fail on automatic contact
-        failed["test-gone"] = {
-            target: "js-org-cleanup.github.io",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-        // External domain, shouldn't try automatic contact
-        failed["custom"] = {
-            target: "custom-target.test.com",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
-            failed: true
-        };
-    }
-
-    console.log(await createMainIssue(failed));
 };
 
 const parseIssueEntries = async issueNumber => {
@@ -285,4 +287,4 @@ const parseIssueEntries = async issueNumber => {
 };
 
 // Export
-module.exports = {createIssue, parseIssueEntries};
+module.exports = {createMainIssue, parseIssueEntries};
