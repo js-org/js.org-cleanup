@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "The script behind the annual js.org cleanup process",
   "main": "index.js",
-  "scripts": {
-    "main": "node index.js --main",
-    "perfect": "node index.js --perfect"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MattIPv4/js.org-cleanup.git"

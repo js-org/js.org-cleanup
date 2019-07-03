@@ -1,8 +1,11 @@
 // Load in templates
-const {robotDisclaimer} = require("./templates.js");
+const {robotDisclaimer, mainPullRequest} = require("./templates.js");
 
 // Load in all the cnames stuff
 const {getCNAMEsFile, getCNAMEs, generateCNAMEsFile} = require("./cnames.js");
+
+// Load in issue related actions
+const {parseIssueEntries} = require("./issues.js");
 
 // Load in our config
 const config = require("./config.json");
@@ -63,8 +66,17 @@ const perfectCNAMEsFile = async () => {
     console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
 };
 
-/*
-    TODO: Complete PR process for main cleanup
+const mainCleanupPull = async issueNumber => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting mainCleanupPull process"));
+
+    // Fetch any cache we have
+    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
+    /*const cache = await getCache("mainCleanupPull");
+    if (cache) {
+        console.log(chalk.greenBright.bold("Cached data found for mainCleanupPull"));
+        return cache.html_url;
+    }*/
 
     // Get the file so we only need to fetch once
     const file = await getCNAMEsFile();
@@ -72,12 +84,18 @@ const perfectCNAMEsFile = async () => {
     // Fetch all cname data
     const allCNAMEs = await getCNAMEs(file);
 
+    // Get the bad cnames
+    const badCNAMEs = await parseIssueEntries(issueNumber);
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming mainCleanupPull process"));
+
     // Generate new cname data w/o bad cnames
     const newCNAMEs = {};
     for (const cname in allCNAMEs) {
         if (!allCNAMEs.hasOwnProperty(cname)) continue;
-        if (cname in badCNAMEs) {
-            console.log(chalk.green(`  Removed ${cname} from cnames_active`));
+        if (badCNAMEs.includes(cname)) {
+            console.log(chalk.blue(`  Removed ${cname} from cnames_active`));
             continue;
         }
         newCNAMEs[cname] = allCNAMEs[cname];
@@ -85,7 +103,39 @@ const perfectCNAMEsFile = async () => {
 
     // Generate new cnames_active
     const cnamesActive = await generateCNAMEsFile(newCNAMEs, file);
-*/
+
+    // Log
+    console.log(chalk.cyanBright.bold("\nResuming mainCleanupPull process"));
+
+    // Create PR info
+    const body = await mainPullRequest(issueNumber, badCNAMEs);
+    const name = `JS.ORG CLEANUP (#${issueNumber})`;
+
+    // Make pull request
+    console.log(chalk.blue("  Creating pull request with changes..."));
+    const pr = await octokit.createPullRequest({
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        title: name,
+        body,
+        head: "cleanup",
+        changes: {
+            files: {
+                "cnames_active.js": cnamesActive
+            },
+            commit: name
+        }
+    });
+
+    // Save to cache
+    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
+    /*await setCache("mainCleanupPull", pr.data);*/
+
+    // Done
+    console.log(chalk.greenBright.bold("Generation completed for mainCleanupPull"));
+    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
+    /*return pr.data.html_url;*/
+};
 
 // Export
-module.exports = {perfectCNAMEsFile};
+module.exports = {perfectCNAMEsFile, mainCleanupPull};

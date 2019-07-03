@@ -25,6 +25,9 @@ require("./types.js");
  * @returns {Promise<string>}
  */
 const getCNAMEsFile = async () => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting getCNAMEsFile process"));
+
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
         owner: config.repository_owner,
@@ -33,7 +36,11 @@ const getCNAMEsFile = async () => {
     });
 
     // Get the contents of the file
-    return Buffer.from(req.data.content, req.data.encoding).toString();
+    const content = Buffer.from(req.data.content, req.data.encoding).toString();
+
+    // Done
+    console.log(chalk.greenBright.bold("Fetching completed for getCNAMEsFile"));
+    return content;
 };
 
 /**
@@ -53,7 +60,10 @@ const getCNAMEs = async (file) => {
     }
 
     // Get the raw cnames file
-    if (!file) file = await getCNAMEsFile();
+    if (!file) {
+        file = await getCNAMEsFile();
+        console.log(chalk.cyanBright.bold("\nResuming getCNAMEs process"));
+    }
 
     // Regex time
     const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(.+)?[ \t]*\n/g);
@@ -70,7 +80,7 @@ const getCNAMEs = async (file) => {
     await setCache("getCNAMEs", cnames);
 
     // Done
-    console.log(chalk.greenBright.bold("Fetching completed for getCNAMEs"));
+    console.log(chalk.greenBright.bold("Parsing completed for getCNAMEs"));
     return cnames
 };
 
@@ -81,8 +91,14 @@ const getCNAMEs = async (file) => {
  * @returns {Promise<?string> | ?string}
  */
 const generateCNAMEsFile = async (cnames, file) => {
+    // Log
+    console.log(chalk.cyanBright.bold("\nStarting generateCNAMEsFile process"));
+
     // Get the raw cnames file
-    if (!file) file = await getCNAMEsFile();
+    if (!file) {
+        file = await getCNAMEsFile();
+        console.log(chalk.cyanBright.bold("\nResuming generateCNAMEsFile process"));
+    }
 
     // Regex time to find the top/bottom comment blocks
     const reg = new RegExp(/(\/\*[\S\s]+?\*\/)/g);
@@ -96,7 +112,7 @@ const generateCNAMEsFile = async (cnames, file) => {
     if (commentBlocks.length < 2) {
         // Log
         console.log(chalk.yellow("  Could not locate top & bottom comment blocks in raw file"));
-        console.log(chalk.redBright.bold("Generation aborted for perfectCNAMEsFile"));
+        console.log(chalk.redBright.bold("Generation aborted for generateCNAMEsFile"));
         return;
     }
     console.log(chalk.blue("  Comment blocks located in existing raw file"));
@@ -114,7 +130,11 @@ const generateCNAMEsFile = async (cnames, file) => {
     }
 
     // Format into the new file
-    return `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
+    const content = `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
+
+    // Done
+    console.log(chalk.greenBright.bold("Genearation completed for generateCNAMEsFile"));
+    return content
 };
 
 /**

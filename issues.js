@@ -254,7 +254,7 @@ const parseIssueEntries = async issueNumber => {
     console.log(chalk.cyanBright.bold("\nStarting parseIssueCNAMEs process"));
 
     // Fetch any cache we have
-    const cache = await getCache("parseIssueCNAMEs");
+    const cache = await getCache("parseIssueCNAMEs") || {};
     if (cache && issueNumber in cache) {
         console.log(chalk.greenBright.bold(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`));
         return cache[issueNumber];
@@ -268,7 +268,7 @@ const parseIssueEntries = async issueNumber => {
     });
 
     // Regex time
-    const reg = new RegExp(/- \[ ] \*\*(\S+?)\*\* > (\S+)\n/g);
+    const reg = new RegExp(/- \[ ] \*\*(\S+?)\.js\.org\*\* > (\S+)\n/g);
     const badCNAMEs = [];
     let match;
     while ((match = reg.exec(issue.data.body)) !== null) {
@@ -280,7 +280,7 @@ const parseIssueEntries = async issueNumber => {
     await setCache("parseIssueCNAMEs", cache);
 
     // Done
-    console.log(chalk.greenBright.bold("Fetching completed for parseIssueCNAMEs"));
+    console.log(chalk.greenBright.bold("Parsing completed for parseIssueCNAMEs"));
     return badCNAMEs;
 };
 
