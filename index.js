@@ -45,7 +45,7 @@ const run = async () => {
             break;
         case "--main-pr":
             if (args.length >= 2) {
-                mainCleanupPull(args[1]);
+                mainCleanupPull(parseInt(args[1]));
                 break;
             }
         default:

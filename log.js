@@ -1,26 +1,30 @@
 // Load in chalk for logging
 const chalk = require("chalk");
 
+// The global log level
 let logLevel = 0;
 
-/*
- * TODO: Method to increase indent (use '>' to indicate level) of log messages
+/**
+ * Increases the depth of future log messages
  */
 const logDown = () => {
     logLevel++;
 };
 
-/*
- * TODO: Method to decrease indent level of log messages
+
+/**
+ * Decreases the depth of log messages
  */
 const logUp = () => {
     logLevel--;
     if (logLevel < 0) logLevel = 0;
 };
 
-/*
- * TODO: Method to log message, takes string and chalk color (callback essentially)
- *  This should make use of the indent level as controlled above
+/**
+ * This logs a message at the current depth using the given color
+ * Empty lines will be logged without indentation
+ * @param {string} message - The message to be logged
+ * @param {function} chalkColor - The chalk color that will be used
  */
 const log = (message, chalkColor) => {
     const indent = chalk.grey(`${">".repeat(logLevel)}${logLevel === 0 ? "" : " "}`);
@@ -29,9 +33,6 @@ const log = (message, chalkColor) => {
         console.log(`${line ? indent : ""}${chalkColor(line)}`);
     });
 };
-
-// TODO: Use this new logging method for all logging in script
-//  The aim being that this will make it visually easier to trace how methods are getting called in the stack
 
 // Export
 module.exports = {logDown, logUp, log};
