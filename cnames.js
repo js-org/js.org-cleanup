@@ -1,3 +1,6 @@
+// Load in custom logging
+const {logDown, logUp, log} = require("./log.js");
+
 // Load in custom caching
 const {getCache, setCache} = require("./cache.js");
 
@@ -26,7 +29,7 @@ require("./types.js");
  */
 const getCNAMEsFile = async () => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting getCNAMEsFile process"));
+    log("\nStarting getCNAMEsFile process", chalk.cyanBright.bold);
 
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
@@ -39,7 +42,7 @@ const getCNAMEsFile = async () => {
     const content = Buffer.from(req.data.content, req.data.encoding).toString();
 
     // Done
-    console.log(chalk.greenBright.bold("Fetching completed for getCNAMEsFile"));
+    log("Fetching completed for getCNAMEsFile", chalk.greenBright.bold);
     return content;
 };
 
@@ -50,19 +53,21 @@ const getCNAMEsFile = async () => {
  */
 const getCNAMEs = async (file) => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting getCNAMEs process"));
+    log("\nStarting getCNAMEs process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("getCNAMEs");
     if (cache) {
-        console.log(chalk.greenBright.bold("Cached data found for getCNAMEs"));
+        log("Cached data found for getCNAMEs", chalk.greenBright.bold);
         return cache;
     }
 
     // Get the raw cnames file
     if (!file) {
+        logDown();
         file = await getCNAMEsFile();
-        console.log(chalk.cyanBright.bold("\nResuming getCNAMEs process"));
+        logUp();
+        log("\nResuming getCNAMEs process", chalk.cyanBright.bold);
     }
 
     // Regex time
@@ -80,7 +85,7 @@ const getCNAMEs = async (file) => {
     await setCache("getCNAMEs", cnames);
 
     // Done
-    console.log(chalk.greenBright.bold("Parsing completed for getCNAMEs"));
+    log("Parsing completed for getCNAMEs", chalk.greenBright.bold);
     return cnames
 };
 
@@ -92,12 +97,14 @@ const getCNAMEs = async (file) => {
  */
 const generateCNAMEsFile = async (cnames, file) => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting generateCNAMEsFile process"));
+    log("\nStarting generateCNAMEsFile process", chalk.cyanBright.bold);
 
     // Get the raw cnames file
     if (!file) {
+        logDown();
         file = await getCNAMEsFile();
-        console.log(chalk.cyanBright.bold("\nResuming generateCNAMEsFile process"));
+        logUp();
+        log("\nResuming generateCNAMEsFile process", chalk.cyanBright.bold);
     }
 
     // Regex time to find the top/bottom comment blocks
@@ -111,11 +118,11 @@ const generateCNAMEsFile = async (cnames, file) => {
     // Abort if couldn't find the top/bottom blocks
     if (commentBlocks.length < 2) {
         // Log
-        console.log(chalk.yellow("  Could not locate top & bottom comment blocks in raw file"));
-        console.log(chalk.redBright.bold("Generation aborted for generateCNAMEsFile"));
+        log("  Could not locate top & bottom comment blocks in raw file", chalk.yellow);
+        log("Generation aborted for generateCNAMEsFile", chalk.redBright.bold);
         return;
     }
-    console.log(chalk.blue("  Comment blocks located in existing raw file"));
+    log("  Comment blocks located in existing raw file", chalk.blue);
 
     // Get perfect alphabetical order
     const cnamesKeys = Object.keys(cnames);
@@ -133,7 +140,7 @@ const generateCNAMEsFile = async (cnames, file) => {
     const content = `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
 
     // Done
-    console.log(chalk.greenBright.bold("Genearation completed for generateCNAMEsFile"));
+    log("Generation completed for generateCNAMEsFile", chalk.greenBright.bold);
     return content
 };
 
@@ -162,11 +169,14 @@ const testUrl = async url => {
  * @returns {Promise<cnamesObject>} - Any failed CNAME entries
  */
 const validateCNAMEs = async () => {
-    // Get the CNAMEs
-    const cnames = await getCNAMEs();
-
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting validateCNAMEs process"));
+    log("\nStarting validateCNAMEs process", chalk.cyanBright.bold);
+
+    // Get the CNAMEs
+    logDown();
+    const cnames = await getCNAMEs();
+    logUp();
+    log("\nResuming validateCNAMEs process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("validateCNAMEs");
@@ -201,21 +211,21 @@ const validateCNAMEs = async () => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(chalk.blue(`  [${position}] ${urlHttp} in cache, skipping tests.`));
+            log(`  [${position}] ${urlHttp} in cache, skipping tests.`, chalk.blue);
             tests[cname] = cache[cname];
             if (tests[cname].failed) failedCounter++;
             continue;
         }
 
         // Run the tests
-        console.log(chalk.blue(`  [${position}] Testing ${urlHttp}...`));
+        log(`  [${position}] Testing ${urlHttp}...`, chalk.blue);
         const failedHttp = await testUrl(urlHttp);
         const failedHttps = await testUrl(urlHttps);
 
         // Allow one to fail without care
         if (failedHttp && failedHttps) {
             // Log
-            console.log(chalk.yellow(`    ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``));
+            log(`    ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``, chalk.yellow);
 
             // Save
             failedCounter++;
@@ -226,7 +236,7 @@ const validateCNAMEs = async () => {
             tests[cname] = data;
         } else {
             // Log
-            console.log(chalk.green(`    ...succeeded`));
+            log(`    ...succeeded`, chalk.green);
 
             // Save
             const data = cnames[cname];
@@ -245,7 +255,7 @@ const validateCNAMEs = async () => {
         const data = tests[cname];
         if (data.failed) failed[cname] = data;
     }
-    console.log(chalk.greenBright.bold("Testing completed for validateCNAMEs"));
+    log("Testing completed for validateCNAMEs", chalk.greenBright.bold);
     return failed
 };
 

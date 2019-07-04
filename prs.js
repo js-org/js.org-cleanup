@@ -1,3 +1,6 @@
+// Load in custom logging
+const {logDown, logUp, log} = require("./log.js");
+
 // Load in custom caching
 const {removeCache} = require("./cache.js");
 
@@ -26,38 +29,44 @@ const chalk = require("chalk");
  */
 const perfectCNAMEsFile = async () => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting perfectCNAMEsFile process"));
+    log("\nStarting perfectCNAMEsFile process", chalk.cyanBright.bold);
 
     // Get the original file
+    logDown();
     const file = await getCNAMEsFile();
+    logUp();
 
     // Get the raw cnames
+    logDown();
     const cnames = await getCNAMEs(file);
+    logUp();
 
     // Get the new file
+    logDown();
     const newFile = await generateCNAMEsFile(cnames, file);
+    logUp();
 
     // Log
-    console.log(chalk.cyanBright.bold("\nResuming perfectCNAMEsFile process"));
+    log("\nResuming perfectCNAMEsFile process", chalk.cyanBright.bold);
 
     // Compare
     if (newFile == file) {
         // Log
-        console.log(chalk.yellow("  Existing file is already perfect, no changes"));
+        log("  Existing file is already perfect, no changes", chalk.green);
 
         // Reset cache
-        console.log(chalk.blue("  Purging cache before completion"));
+        log("  Purging cache before completion", chalk.blue);
         await removeCache("getCNAMEs");
         await removeCache("generateCNAMEsFile");
 
         // Done
-        console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
+        log("Generation completed for perfectCNAMEsFile", chalk.greenBright.bold);
         return;
     }
 
     // Create fork, commit & PR
-    console.log(chalk.yellow("  Changes are required to make the file perfect"));
-    console.log(chalk.blue("  Creating pull request with changes..."));
+    log("  Changes are required to make the file perfect", chalk.yellow);
+    log("  Creating pull request with changes...", chalk.blue);
     const pr = await octokit.createPullRequest({
         owner: config.repository_owner,
         repo: config.repository_name,
@@ -73,13 +82,13 @@ const perfectCNAMEsFile = async () => {
     });
 
     // Reset cache
-    console.log(chalk.green("    ...pull request created"));
-    console.log(chalk.blue("  Purging cache before completion"));
+    log("    ...pull request created", chalk.green);
+    log("  Purging cache before completion", chalk.blue);
     await removeCache("getCNAMEs");
     await removeCache("generateCNAMEsFile");
 
     // Done
-    console.log(chalk.greenBright.bold("Generation completed for perfectCNAMEsFile"));
+    log("Generation completed for perfectCNAMEsFile", chalk.greenBright.bold);
     // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
     /*return pr.data.html_url;*/
 };
@@ -91,51 +100,59 @@ const perfectCNAMEsFile = async () => {
  */
 const mainCleanupPull = async issueNumber => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting mainCleanupPull process"));
+    log("\nStarting mainCleanupPull process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
     /*const cache = await getCache("mainCleanupPull");
     if (cache) {
-        console.log(chalk.greenBright.bold("Cached data found for mainCleanupPull"));
+        log("Cached data found for mainCleanupPull", chalk.greenBright.bold);
         return cache.html_url;
     }*/
 
     // Get the file so we only need to fetch once
+    logDown();
     const file = await getCNAMEsFile();
+    logUp();
 
     // Fetch all cname data
+    logDown();
     const allCNAMEs = await getCNAMEs(file);
+    logUp();
 
     // Get the bad cnames
+    logDown();
     const badCNAMEs = await parseIssueEntries(issueNumber);
+    logUp();
 
     // Log
-    console.log(chalk.cyanBright.bold("\nResuming mainCleanupPull process"));
+    log("\nResuming mainCleanupPull process", chalk.cyanBright.bold);
 
     // Generate new cname data w/o bad cnames
     const newCNAMEs = {};
     for (const cname in allCNAMEs) {
         if (!allCNAMEs.hasOwnProperty(cname)) continue;
         if (badCNAMEs.includes(cname)) {
-            console.log(chalk.blue(`  Removed ${cname} from cnames_active`));
+            log(`  Removed ${cname} from cnames_active`, chalk.blue);
             continue;
         }
         newCNAMEs[cname] = allCNAMEs[cname];
     }
 
     // Generate new cnames_active
+    logDown();
     const cnamesActive = await generateCNAMEsFile(newCNAMEs, file);
+    logUp();
 
     // Log
-    console.log(chalk.cyanBright.bold("\nResuming mainCleanupPull process"));
+    log("\nResuming mainCleanupPull process", chalk.cyanBright.bold);
 
     // Create PR info
     const body = await mainPullRequest(issueNumber, badCNAMEs);
     const name = `JS.ORG CLEANUP (#${issueNumber})`;
 
     // Make pull request
-    console.log(chalk.blue("  Creating pull request with changes..."));
+    log("  Creating pull request with changes...", chalk.blue);
     const pr = await octokit.createPullRequest({
         owner: config.repository_owner,
         repo: config.repository_name,
@@ -155,13 +172,13 @@ const mainCleanupPull = async issueNumber => {
     /*await setCache("mainCleanupPull", pr.data);*/
 
     // Reset cache
-    console.log(chalk.green("    ...pull request created"));
-    console.log(chalk.blue("  Purging cache before completion"));
+    log("    ...pull request created", chalk.green);
+    log("  Purging cache before completion", chalk.blue);
     await removeCache("getCNAMEs");
     await removeCache("parseIssueCNAMEs");
 
     // Done
-    console.log(chalk.greenBright.bold("Generation completed for mainCleanupPull"));
+    log("Generation completed for mainCleanupPull", chalk.greenBright.bold);
     // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
     /*return pr.data.html_url;*/
 };
