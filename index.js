@@ -1,3 +1,6 @@
+// Load in custom logging
+const {log} = require("./log.js");
+
 // Load in chalk for logging
 const chalk = require("chalk");
 
@@ -11,11 +14,11 @@ const {createMainIssue} = require("./issues.js");
  * Show an error message in console explaining the command line argument choices
  */
 const showArgsError = () => {
-    console.log(chalk.red("\nPlease provide one of the following command line arguments to run the cleanup script:"));
-    console.log(chalk.red("  --perfect               : Generates a perfectly formatted and sorted cnames_active file"));
-    console.log(chalk.red("  --main-issue            : Initiates the annual cleanup by creating the main cleanup issue"));
-    console.log(chalk.red("  --main-pr <issueNumber> : Completes the annual cleanup by parsing issue and creating PR"));
-    console.log(chalk.redBright.bold("\nCleanup script aborted"));
+    log("\nPlease provide one of the following command line arguments to run the cleanup script:", chalk.red);
+    log("  --perfect               : Generates a perfectly formatted and sorted cnames_active file", chalk.red);
+    log("  --main-issue            : Initiates the annual cleanup by creating the main cleanup issue", chalk.red);
+    log("  --main-pr <issueNumber> : Completes the annual cleanup by parsing issue and creating PR", chalk.red);
+    log("\nCleanup script aborted", chalk.redBright.bold);
 };
 
 /**
@@ -38,7 +41,7 @@ const run = async () => {
             await perfectCNAMEsFile();
             break;
         case "--main-issue":
-            console.log(await createMainIssue());
+            log(await createMainIssue(), chalk.default);
             break;
         case "--main-pr":
             if (args.length >= 2) {

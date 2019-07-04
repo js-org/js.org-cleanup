@@ -1,3 +1,6 @@
+// Load in custom logging
+const {logDown, logUp, log} = require("./log.js");
+
 // Load in custom caching
 const {getCache, setCache, removeCache} = require("./cache.js");
 
@@ -31,7 +34,7 @@ require("./types.js");
  */
 const attemptTargetIssues = async (failed, issueUrl) => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting attemptTargetIssues process"));
+    log("\nStarting attemptTargetIssues process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("attemptTargetIssues");
@@ -53,7 +56,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // If in cache, use that
         if (cache && cname in cache) {
-            console.log(chalk.blue(`  [${position}] ${cname} in cache, skipping automatic contact.`));
+            log(`  [${position}] ${cname} in cache, skipping automatic contact.`, chalk.blue);
             const data = cache[cname];
             if (data.contact) {
                 successCounter++;
@@ -66,14 +69,14 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
         // Get cname data
         const data = failed[cname];
-        console.log(chalk.blue(`  [${position}] Attempting to contact ${cname} (${data.target})...`));
+        log(`  [${position}] Attempting to contact ${cname} (${data.target})...`, chalk.blue);
 
         // Regex time
         const reg = new RegExp(/(\S+).github.io(?:\/(\S+))?/g);
         const match = reg.exec(data.target);
         if (!match) {
             // Not a github.io target
-            console.log(chalk.yellow("    ...failed, not a github target"));
+            log("    ...failed, not a github target", chalk.yellow);
             data.contact = false;
             pending[cname] = data;
         } else {
@@ -98,11 +101,11 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
             // Abort if no issue, else save issue data
             if (!issue || !issue.data) {
-                console.log(chalk.yellow("    ...failed, could not create issue"));
+                log("    ...failed, could not create issue", chalk.yellow);
                 data.contact = false;
                 pending[cname] = data;
             } else {
-                console.log(chalk.green("    ...succeeded"));
+                log("    ...succeeded", chalk.green);
                 successCounter++;
                 data.issue = issue.data;
                 data.contact = true;
@@ -115,7 +118,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     }
 
     // Done
-    console.log(chalk.greenBright.bold("Attempts completed for attemptTargetIssues"));
+    log("Attempts completed for attemptTargetIssues", chalk.greenBright.bold);
     return {pending, contact}
 };
 
@@ -140,17 +143,19 @@ const entriesToList = cnames => {
  */
 const createMainIssue = async () => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting createMainIssue process"));
+    log("\nStarting createMainIssue process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("createMainIssue");
     if (cache) {
-        console.log(chalk.greenBright.bold("Cached data found for createMainIssue"));
+        log("Cached data found for createMainIssue", chalk.greenBright.bold);
         return cache.html_url;
     }
 
     // Get the failed CNAMEs
+    logDown();
     const failed = await validateCNAMEs();
+    logUp();
 
     // DEV: custom test failed record
     if (config.dev_fake_cnames) {
@@ -190,7 +195,7 @@ const createMainIssue = async () => {
     }
 
     // Log
-    console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
+    log("\nResuming createMainIssue process", chalk.cyanBright.bold);
 
     // Create new empty issue (change this for DEV)
     const issue = await octokit.issues.create({
@@ -204,12 +209,16 @@ const createMainIssue = async () => {
     let contact = {};
     if (config.automatic_contact) {
         // Attempt automatic contact
+        logDown();
         const res = await attemptTargetIssues(failed, issue.data.html_url);
+        logUp();
+
+        // Get data
         pending = res.pending;
         contact = res.contact;
 
         // Log resume
-        console.log(chalk.cyanBright.bold("\nResuming createMainIssue process"));
+        log("\nResuming createMainIssue process", chalk.cyanBright.bold);
     }
 
     // Convert them to MD list
@@ -240,14 +249,14 @@ const createMainIssue = async () => {
     await setCache("createMainIssue", issue.data);
 
     // Reset cache
-    console.log(chalk.green("  Issue updated with full list"));
-    console.log(chalk.blue("  Purging cache before completion"));
+    log("  Issue updated with full list", chalk.green);
+    log("  Purging cache before completion", chalk.blue);
     await removeCache("getCNAMEs");
     await removeCache("validateCNAMEs");
     await removeCache("attemptTargetIssues");
 
     // Done
-    console.log(chalk.greenBright.bold("Issue creation completed for createMainIssue"));
+    log("Issue creation completed for createMainIssue", chalk.greenBright.bold);
     return issue.data.html_url;
 };
 
@@ -258,12 +267,12 @@ const createMainIssue = async () => {
  */
 const parseIssueEntries = async issueNumber => {
     // Log
-    console.log(chalk.cyanBright.bold("\nStarting parseIssueCNAMEs process"));
+    log("\nStarting parseIssueCNAMEs process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("parseIssueCNAMEs") || {};
     if (cache && issueNumber in cache) {
-        console.log(chalk.greenBright.bold(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`));
+        log(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`, chalk.greenBright.bold);
         return cache[issueNumber];
     }
 
@@ -287,7 +296,7 @@ const parseIssueEntries = async issueNumber => {
     await setCache("parseIssueCNAMEs", cache);
 
     // Done
-    console.log(chalk.greenBright.bold("Parsing completed for parseIssueCNAMEs"));
+    log("Parsing completed for parseIssueCNAMEs", chalk.greenBright.bold);
     return badCNAMEs;
 };
 
