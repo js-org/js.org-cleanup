@@ -1,8 +1,11 @@
 // Load in our config
-const config = require("./config.json");
+const config = require("../config.json");
 
 // Load in fs for files
 const fs = require("fs");
+
+// Load in path joining
+const { join } = require("path");
 
 // Load custom jsdoc types
 require("./types.js");
@@ -12,7 +15,7 @@ require("./types.js");
  * @returns {Promise<string>}
  */
 const robotDisclaimer = async () => {
-    const template = await fs.readFileSync("templates/bot_disclaimer.md", "utf8");
+    const template = await fs.readFileSync(join(__dirname, "..", "templates", "bot_disclaimer.md"), "utf8");
     return template
         .replace(/{{REPO_OWNER}}/g, config.repository_owner)
         .replace(/{{REPO_NAME}}/g, config.repository_name);
@@ -27,7 +30,7 @@ const robotDisclaimer = async () => {
  * @returns {Promise<string>}
  */
 const repoContactIssue = async (cname, data, issue, robot) => {
-    const template = await fs.readFileSync("templates/contact_issue.md", "utf8");
+    const template = await fs.readFileSync(join(__dirname, "..", "templates", "contact_issue.md"), "utf8");
     const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
@@ -44,7 +47,7 @@ const repoContactIssue = async (cname, data, issue, robot) => {
  * @returns {Promise<string>}
  */
 const mainPullRequest = async (issueNumber, badCNAMEs) => {
-    const template = await fs.readFileSync("templates/main_pr.md", "utf8");
+    const template = await fs.readFileSync(join(__dirname, "..", "templates", "main_pr.md"), "utf8");
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
         .replace(/{{BAD_CNAMES}}/g, badCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join("\n"));

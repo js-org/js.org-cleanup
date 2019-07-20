@@ -5,7 +5,7 @@ const {logDown, logUp, log} = require("./log.js");
 const {getCache, setCache, removeCache} = require("./cache.js");
 
 // Load in our config
-const config = require("./config.json");
+const config = require("../config.json");
 
 // Load in CNAME operation
 const {validateCNAMEs} = require("./cnames.js");

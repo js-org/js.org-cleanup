@@ -14,7 +14,7 @@ const {getCNAMEsFile, getCNAMEs, generateCNAMEsFile} = require("./cnames.js");
 const {parseIssueEntries} = require("./issues.js");
 
 // Load in our config
-const config = require("./config.json");
+const config = require("../config.json");
 
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest").plugin(require("octokit-create-pull-request"));
