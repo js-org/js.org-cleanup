@@ -50,6 +50,7 @@ const mainPullRequest = async (issueNumber, badCNAMEs) => {
     const template = await fs.readFileSync(join(__dirname, "..", "templates", "main_pr.md"), "utf8");
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
+        .replace(/{{ISSUE_NUMBER}}/g, issueNumber)
         .replace(/{{BAD_CNAMES}}/g, badCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join("\n"));
     return `${body}${await robotDisclaimer()}`;
 };

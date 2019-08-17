@@ -110,6 +110,15 @@ const mainCleanupPull = async issueNumber => {
         return cache.html_url;
     }*/
 
+    // Lock issue
+    log("  Locking cleanup issue...", chalk.blue);
+    await octokit.issues.lock({
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        issue_number: issueNumber
+    });
+    log("    ...issue locked", chalk.green);
+
     // Get the file so we only need to fetch once
     logDown();
     const file = await getCNAMEsFile();
@@ -166,13 +175,13 @@ const mainCleanupPull = async issueNumber => {
             commit: name
         }
     });
+    log("    ...pull request created", chalk.green);
 
     // Save to cache
     // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
     /*await setCache("mainCleanupPull", pr.data);*/
 
     // Reset cache
-    log("    ...pull request created", chalk.green);
     log("  Purging cache before completion", chalk.blue);
     await removeCache("getCNAMEs");
     await removeCache("parseIssueCNAMEs");
