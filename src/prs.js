@@ -89,8 +89,7 @@ const perfectCNAMEsFile = async () => {
 
     // Done
     log("Generation completed for perfectCNAMEsFile", chalk.greenBright.bold);
-    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
-    /*return pr.data.html_url;*/
+    return pr.data.html_url;
 };
 
 /**

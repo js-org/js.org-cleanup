@@ -38,14 +38,14 @@ const run = async () => {
     // Handle the args
     switch (args[0]) {
         case "--perfect":
-            await perfectCNAMEsFile();
+            log(await perfectCNAMEsFile());
             break;
         case "--main-issue":
-            log(await createMainIssue(), chalk.default);
+            log(await createMainIssue());
             break;
         case "--main-pr":
             if (args.length >= 2) {
-                log(await mainCleanupPull(parseInt(args[1])), chalk.default);
+                log(await mainCleanupPull(parseInt(args[1])));
                 break;
             }
         default:
