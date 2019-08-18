@@ -28,6 +28,18 @@
 
 These are the scripts behind the annual js.org cleanup process.
 
+### Example Generated Main Issue
+
+https://github.com/js-org-cleanup/simulated-js.org/issues/46
+
+### Example Generated Contact Issue
+
+https://github.com/js-org-cleanup/simulated-automatic-contact/issues/12
+
+### Example Generated Pull Request
+
+https://github.com/js-org-cleanup/simulated-js.org/pull/47
+
 <!-- Contributing -->
 ## Contributing
 
