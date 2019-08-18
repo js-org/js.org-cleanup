@@ -45,7 +45,7 @@ const run = async () => {
             break;
         case "--main-pr":
             if (args.length >= 2) {
-                mainCleanupPull(parseInt(args[1]));
+                log(await mainCleanupPull(parseInt(args[1])), chalk.default);
                 break;
             }
         default:

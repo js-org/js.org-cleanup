@@ -2,7 +2,7 @@
 const {logDown, logUp, log} = require("./log.js");
 
 // Load in custom caching
-const {removeCache} = require("./cache.js");
+const {getCache, setCache, removeCache} = require("./cache.js");
 
 // Load in templates
 const {robotDisclaimer, mainPullRequest} = require("./templates.js");
@@ -103,12 +103,11 @@ const mainCleanupPull = async issueNumber => {
     log("\nStarting mainCleanupPull process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
-    /*const cache = await getCache("mainCleanupPull");
+    const cache = await getCache("mainCleanupPull");
     if (cache) {
         log("Cached data found for mainCleanupPull", chalk.greenBright.bold);
         return cache.html_url;
-    }*/
+    }
 
     // Lock issue
     log("  Locking cleanup issue...", chalk.blue);
@@ -178,8 +177,7 @@ const mainCleanupPull = async issueNumber => {
     log("    ...pull request created", chalk.green);
 
     // Save to cache
-    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
-    /*await setCache("mainCleanupPull", pr.data);*/
+    await setCache("mainCleanupPull", pr.data);
 
     // Reset cache
     log("  Purging cache before completion", chalk.blue);
@@ -188,8 +186,7 @@ const mainCleanupPull = async issueNumber => {
 
     // Done
     log("Generation completed for mainCleanupPull", chalk.greenBright.bold);
-    // TODO: waiting on https://github.com/gr2m/octokit-create-pull-request/pull/13 for PR data
-    /*return pr.data.html_url;*/
+    return pr.data.html_url;
 };
 
 // Export
