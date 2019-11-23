@@ -13,6 +13,9 @@ const {validateCNAMEs} = require("./cnames.js");
 // Load in templates
 const {repoContactIssue} = require("./templates.js");
 
+// Load in confirm script
+const confirm = require("./confirm.js");
+
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest");
 const octokit = new Octokit({auth: config.github_token});
@@ -192,6 +195,12 @@ const createMainIssue = async () => {
             https: "Failed with status code '404 Not Found'",
             failed: true
         };
+    }
+
+    // Wait for confirmation
+    let ans = "";
+    while (ans.toString().toLowerCase().trim() !== "confirm") {
+        ans = await confirm("Enter 'confirm' to begin creating issues...\n");
     }
 
     // Log

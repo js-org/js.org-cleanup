@@ -152,14 +152,15 @@ const generateCNAMEsFile = async (cnames, file) => {
 const testUrl = async url => {
     let resp;
     try {
-        resp = await fetch(url, {timeout: 1000});
+        resp = await fetch(url, {timeout: 5000});
     } catch (err) {
         return `Failed during request with error '${err}'`
     }
     if (!resp.ok) {
         return `Failed with status code '${resp.status} ${resp.statusText}'`
     }
-    if (!resp.text()) {
+    const text = await resp.text();
+    if (text.toLowerCase().trim() === "") {
         return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`
     }
 };
