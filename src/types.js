@@ -1,5 +1,5 @@
 /**
- * @typedef {object} cnameObject
+ * @typedef {Object} cnameObject
  * @property {string} target - The CNAME target
  * @property {string} [noCF] - The noCF tag (if present) on the record
  *
@@ -13,6 +13,12 @@
 
 /**
  * @typedef {Object.<string, cnameObject>} cnamesObject
+ */
+
+/**
+ * @typedef {Object} cnamesValidationObject
+ * @property {cnamesObject} failed - CNAME entires that failed validation
+ * @property {cnamesObject} passed - CNAME entires that passed validation
  */
 
 /**

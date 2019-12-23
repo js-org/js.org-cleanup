@@ -1,8 +1,8 @@
 // Load in custom logging
-const {logDown, logUp, log} = require("./log.js");
+const { logDown, logUp, log } = require("./log.js");
 
 // Load in custom caching
-const {getCache, setCache} = require("./cache.js");
+const { getCache, setCache } = require("./cache.js");
 
 // Load in our config
 const config = require("../config.json");
@@ -152,7 +152,7 @@ const generateCNAMEsFile = async (cnames, file) => {
 const testUrl = async url => {
     let resp;
     try {
-        resp = await fetch(url, {timeout: 5000});
+        resp = await fetch(url, { timeout: 5000 });
     } catch (err) {
         return `Failed during request with error '${err}'`
     }
@@ -166,18 +166,13 @@ const testUrl = async url => {
 };
 
 /**
- * Fetches the js.org CNAME entries and then validates each one using a HTTP & HTTPS test
- * @returns {Promise<cnamesObject>} - Any failed CNAME entries
+ * Validates each CNAME entry using a HTTP & HTTPS test
+ * @param {cnamesObject} cnames - Every entry to test
+ * @returns {Promise<cnamesValidationObject>} - The results of the validation ({failed, passed})
  */
-const validateCNAMEs = async () => {
+const validateCNAMEs = async (cnames) => {
     // Log
     log("\nStarting validateCNAMEs process", chalk.cyanBright.bold);
-
-    // Get the CNAMEs
-    logDown();
-    const cnames = await getCNAMEs();
-    logUp();
-    log("\nResuming validateCNAMEs process", chalk.cyanBright.bold);
 
     // Fetch any cache we have
     const cache = await getCache("validateCNAMEs");
@@ -251,14 +246,16 @@ const validateCNAMEs = async () => {
 
     // Done
     const failed = {};
+    const passed = {};
     for (const cname in tests) {
         if (!tests.hasOwnProperty(cname)) continue;
         const data = tests[cname];
         if (data.failed) failed[cname] = data;
+        else passed[cname] = data;
     }
     log("Testing completed for validateCNAMEs", chalk.greenBright.bold);
-    return failed
+    return { failed, passed }
 };
 
 // Export
-module.exports = {getCNAMEsFile, getCNAMEs, generateCNAMEsFile, validateCNAMEs};
+module.exports = { getCNAMEsFile, getCNAMEs, generateCNAMEsFile, validateCNAMEs };

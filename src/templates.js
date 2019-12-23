@@ -43,15 +43,17 @@ const repoContactIssue = async (cname, data, issue, robot) => {
 /**
  * Creates the body of the main cleanup process pull request
  * @param {int} issueNumber - The associated cleanup issue number
- * @param {Array<string>} badCNAMEs - All the cnames being removed
+ * @param {Array<string>} stillBadCNAMEs - Bad cnames being removed
+ * @param {Array<string>} notBadCNAMEs - Bad cnames not being removed
  * @returns {Promise<string>}
  */
-const mainPullRequest = async (issueNumber, badCNAMEs) => {
+const mainPullRequest = async (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
     const template = await fs.readFileSync(join(__dirname, "..", "templates", "main_pr.md"), "utf8");
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
         .replace(/{{ISSUE_NUMBER}}/g, issueNumber)
-        .replace(/{{BAD_CNAMES}}/g, badCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join("\n"));
+        .replace(/{{STILL_BAD_CNAMES}}/g, stillBadCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join("\n") || "*None*")
+        .replace(/{{NOT_BAD_CNAMES}}/g, notBadCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join("\n") || "*None*");
     return `${body}${await robotDisclaimer()}`;
 };
 

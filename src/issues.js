@@ -8,7 +8,7 @@ const {getCache, setCache, removeCache} = require("./cache.js");
 const config = require("../config.json");
 
 // Load in CNAME operation
-const {validateCNAMEs} = require("./cnames.js");
+const {getCNAMEs, validateCNAMEs} = require("./cnames.js");
 
 // Load in templates
 const {repoContactIssue} = require("./templates.js");
@@ -155,9 +155,14 @@ const createMainIssue = async () => {
         return cache.html_url;
     }
 
+    // Get the CNAMEs
+    logDown();
+    const cnames = await getCNAMEs();
+    logUp();
+
     // Get the failed CNAMEs
     logDown();
-    const failed = await validateCNAMEs();
+    const { failed } = await validateCNAMEs(cnames);
     logUp();
 
     // DEV: custom test failed record

@@ -8,7 +8,7 @@ const {getCache, setCache, removeCache} = require("./cache.js");
 const {robotDisclaimer, mainPullRequest} = require("./templates.js");
 
 // Load in all the cnames stuff
-const {getCNAMEsFile, getCNAMEs, generateCNAMEsFile} = require("./cnames.js");
+const {getCNAMEsFile, getCNAMEs, generateCNAMEsFile, validateCNAMEs} = require("./cnames.js");
 
 // Load in issue related actions
 const {parseIssueEntries} = require("./issues.js");
@@ -110,12 +110,16 @@ const mainCleanupPull = async issueNumber => {
 
     // Lock issue
     log("  Locking cleanup issue...", chalk.blue);
-    await octokit.issues.lock({
-        owner: config.repository_owner,
-        repo: config.repository_name,
-        issue_number: issueNumber
-    });
-    log("    ...issue locked", chalk.green);
+    try {
+        await octokit.issues.lock({
+            owner: config.repository_owner,
+            repo: config.repository_name,
+            issue_number: issueNumber
+        });
+        log("    ...issue locked", chalk.green);
+    } catch (_) {
+        log("    ...failed to lock issue", chalk.red);
+    }
 
     // Get the file so we only need to fetch once
     logDown();
@@ -127,9 +131,20 @@ const mainCleanupPull = async issueNumber => {
     const allCNAMEs = await getCNAMEs(file);
     logUp();
 
-    // Get the bad cnames
+    // Get the bad cnames (convert to fake cnamesObject)
     logDown();
-    const badCNAMEs = await parseIssueEntries(issueNumber);
+    const badCNAMEs = (await parseIssueEntries(issueNumber)).reduce(function(result, item) {
+        result[item] = {};
+        return result;
+    }, {});
+    console.log(badCNAMEs);
+    logUp();
+
+    // Check the bad cnames are still bad
+    logDown();
+    const validation = await validateCNAMEs(badCNAMEs);
+    const stillBadCNAMEs = validation.failed;
+    const notBadCNAMEs = validation.passed;
     logUp();
 
     // Log
@@ -139,7 +154,7 @@ const mainCleanupPull = async issueNumber => {
     const newCNAMEs = {};
     for (const cname in allCNAMEs) {
         if (!allCNAMEs.hasOwnProperty(cname)) continue;
-        if (badCNAMEs.includes(cname)) {
+        if (stillBadCNAMEs.hasOwnProperty(cname)) {
             log(`  Removed ${cname} from cnames_active`, chalk.blue);
             continue;
         }
@@ -155,7 +170,7 @@ const mainCleanupPull = async issueNumber => {
     log("\nResuming mainCleanupPull process", chalk.cyanBright.bold);
 
     // Create PR info
-    const body = await mainPullRequest(issueNumber, badCNAMEs);
+    const body = await mainPullRequest(issueNumber, Object.keys(stillBadCNAMEs), Object.keys(notBadCNAMEs));
     const name = `JS.ORG CLEANUP (#${issueNumber})`;
 
     // Make pull request
@@ -181,6 +196,7 @@ const mainCleanupPull = async issueNumber => {
     // Reset cache
     log("  Purging cache before completion", chalk.blue);
     await removeCache("getCNAMEs");
+    await removeCache("validateCNAMEs");
     await removeCache("parseIssueCNAMEs");
 
     // Done

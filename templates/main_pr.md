@@ -5,4 +5,8 @@ This closes #{{ISSUE_NUMBER}}.
 
 The following entries are removed in this pull request as they were not claimed in the [cleanup issue]({{ISSUE_URL}}):
 
-{{BAD_CNAMES}}
+{{STILL_BAD_CNAMES}}
+
+The following entries were listed in the [cleanup issue]({{ISSUE_URL}}) but are now working, so are not being removed:
+
+{{NOT_BAD_CNAMES}}
