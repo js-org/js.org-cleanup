@@ -125,6 +125,7 @@ const generateCNAMEsFile = async (cnames, file) => {
     log("  Comment blocks located in existing raw file", chalk.blue);
 
     // Get perfect alphabetical order
+    cnames = Object.fromEntries(Object.entries(cnames).map(entry => [entry[0].toLowerCase(), entry[1]]));
     const cnamesKeys = Object.keys(cnames);
     cnamesKeys.sort();
 
@@ -133,11 +134,11 @@ const generateCNAMEsFile = async (cnames, file) => {
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
         const data = cnames[cname];
-        cnamesList.push(`  "${cname}": "${data.target}"${i == cnamesKeys.length - 1 ? "" : ","}${data.noCF ? ` ${data.noCF}` : ""}`)
+        cnamesList.push(`  "${cname}": "${data.target}"${Number(i) === cnamesKeys.length - 1 ? "" : ","}${data.noCF ? ` ${data.noCF}` : ""}`)
     }
 
     // Format into the new file
-    const content = `\n${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
+    const content = `${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
 
     // Done
     log("Generation completed for generateCNAMEsFile", chalk.greenBright.bold);
