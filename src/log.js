@@ -27,6 +27,7 @@ const logUp = () => {
  * @param {function} [chalkColor=chalk.default] - The chalk color that will be used
  */
 const log = (message, chalkColor) => {
+    if (typeof message !== 'string') return;
     if (chalkColor === undefined) chalkColor = chalk.default;
     const indent = chalk.grey(`${">".repeat(logLevel)}${logLevel === 0 ? "" : " "}`);
     const lines = message.split("\n");
