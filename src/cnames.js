@@ -71,13 +71,13 @@ const getCNAMEs = async (file) => {
     }
 
     // Regex time
-    const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(.+)?[ \t]*\n/g);
+    const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
     const cnames = {};
     let match;
     while ((match = reg.exec(file)) !== null) {
         cnames[match[1]] = {
             target: match[2],
-            noCF: match[3]
+            noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,
         }
     }
 
