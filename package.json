@@ -16,7 +16,7 @@
   "dependencies": {
     "@octokit/rest": "^16.28.2",
     "chalk": "^2.4.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "octokit-create-pull-request": "^1.2.0"
   }
 }
