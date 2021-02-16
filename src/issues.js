@@ -298,12 +298,8 @@ const parseIssueEntries = async issueNumber => {
     });
 
     // Regex time
-    const reg = new RegExp(/- \[ ] \*\*(\S+?)\.js\.org\*\* > (\S+)\n/g);
-    const badCNAMEs = [];
-    let match;
-    while ((match = reg.exec(issue.data.body)) !== null) {
-        badCNAMEs.push(match[1]);
-    }
+    const reg = new RegExp(/^- \[ ] \*\*(\S+?)\.js\.org\*\* > (\S+)$/gm);
+    const badCNAMEs = [...issue.data.body.matchAll(reg)].map(match => match[1]);
 
     // Cache
     cache[issueNumber] = badCNAMEs;
