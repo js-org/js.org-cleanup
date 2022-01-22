@@ -152,10 +152,15 @@ const generateCNAMEsFile = async (cnames, file) => {
  */
 const testUrl = async url => {
     let resp;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
     try {
-        resp = await fetch(url, { timeout: 5000 });
+        resp = await fetch(url, { signal: controller.signal });
     } catch (err) {
+        if (err.name === "AbortError") return "Failed due to time out after 5s"
         return `Failed during request with error '${err}'`
+    } finally {
+        clearTimeout(timer);
     }
     if (!resp.ok) {
         return `Failed with status code '${resp.status} ${resp.statusText}'`
