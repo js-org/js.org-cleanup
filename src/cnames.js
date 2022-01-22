@@ -157,17 +157,20 @@ const testUrl = async url => {
     try {
         resp = await fetch(url, { signal: controller.signal });
     } catch (err) {
-        if (err.name === "AbortError") return "Failed due to time out after 5s"
-        return `Failed during request with error '${err}'`
+        if (err.name === "AbortError") return "Failed due to time out after 5s";
+        return `Failed during request with error '${err}'`;
     } finally {
         clearTimeout(timer);
     }
     if (!resp.ok) {
-        return `Failed with status code '${resp.status} ${resp.statusText}'`
+        return `Failed with status code '${resp.status} ${resp.statusText}'`;
+    }
+    if (resp.redirected) {
+        return `Failed due to automatic redirect to '${resp.url}'`;
     }
     const text = await resp.text();
     if (text.toLowerCase().trim() === "") {
-        return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`
+        return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`;
     }
 };
 
