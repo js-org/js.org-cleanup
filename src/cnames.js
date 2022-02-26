@@ -10,6 +10,9 @@ const config = require("../config.json");
 // Load in string formatting
 require("./string.js");
 
+// Load in URL for checking redirects
+const { URL } = require("url");
+
 // Load in Octokit for GitHub API
 const Octokit = require("@octokit/rest");
 const octokit = new Octokit();
@@ -165,7 +168,7 @@ const testUrl = async url => {
     if (!resp.ok) {
         return `Failed with status code '${resp.status} ${resp.statusText}'`;
     }
-    if (resp.redirected) {
+    if (resp.redirected && !(new URL(resp.url).origin.endsWith('.js.org'))) {
         return `Failed due to automatic redirect to '${resp.url}'`;
     }
     const text = await resp.text();

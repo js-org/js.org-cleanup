@@ -137,7 +137,7 @@ const mainCleanupPull = async issueNumber => {
         result[item] = {};
         return result;
     }, {});
-    console.log(badCNAMEs);
+    log(`  Found ${Object.keys(badCNAMEs).length} CNAMEs unchecked in issue`, chalk.blue);
     logUp();
 
     // Check the bad cnames are still bad
@@ -145,6 +145,8 @@ const mainCleanupPull = async issueNumber => {
     const validation = await validateCNAMEs(badCNAMEs);
     const stillBadCNAMEs = validation.failed;
     const notBadCNAMEs = validation.passed;
+    log(`  Found ${Object.keys(stillBadCNAMEs).length} CNAMEs still failing`, chalk.blue);
+    log(`  Found ${Object.keys(notBadCNAMEs).length} CNAMEs now working`, chalk.blue);
     logUp();
 
     // Log
@@ -160,6 +162,7 @@ const mainCleanupPull = async issueNumber => {
         }
         newCNAMEs[cname] = allCNAMEs[cname];
     }
+    log(`  Removed ${Object.keys(allCNAMEs).length - Object.keys(newCNAMEs).length} CNAMEs from cnames_active`, chalk.blue);
 
     // Generate new cnames_active
     logDown();
