@@ -65,7 +65,7 @@ const perfectCNAMEsFile = async () => {
         owner: config.repository_owner,
         repo: config.repository_name,
         title: 'Cleanup: Perfect Format & Sorting',
-        body: `This pull request cleans up the cnames_active.js file by ensuring the formatting and sorting is perfect.${await robotDisclaimer()}`,
+        body: `This pull request cleans up the cnames_active.js file by ensuring the formatting and sorting is perfect.${robotDisclaimer()}`,
         head: 'cleanup-perfect',
         changes: {
             files: {
@@ -162,7 +162,7 @@ const mainCleanupPull = async issueNumber => {
     log('\nResuming mainCleanupPull process', chalk.cyanBright.bold);
 
     // Create PR info
-    const body = await mainPullRequest(issueNumber, Object.keys(stillBadCNAMEs), Object.keys(notBadCNAMEs));
+    const body = mainPullRequest(issueNumber, Object.keys(stillBadCNAMEs), Object.keys(notBadCNAMEs));
     const name = `JS.ORG CLEANUP (#${issueNumber})`;
 
     // Make pull request
@@ -183,12 +183,12 @@ const mainCleanupPull = async issueNumber => {
     log('    ...pull request created', chalk.green);
 
     // Save to cache
-    await setCache('mainCleanupPull', pr.data);
+    setCache('mainCleanupPull', pr.data);
 
     // Reset cache
     log('  Purging cache before completion', chalk.blue);
-    await removeCache('validateCNAMEs');
-    await removeCache('parseIssueCNAMEs');
+    removeCache('validateCNAMEs');
+    removeCache('parseIssueCNAMEs');
 
     // Done
     log('Generation completed for mainCleanupPull', chalk.greenBright.bold);

@@ -24,6 +24,9 @@ const octokit = new Octokit({ auth: config.github_token });
 // Load in fs for files
 const fs = require('fs');
 
+// Load in path joining
+const { join } = require('path');
+
 // Load in chalk for logging
 const chalk = require('chalk');
 
@@ -41,7 +44,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     log('\nStarting attemptTargetIssues process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache('attemptTargetIssues');
+    const cache = getCache('attemptTargetIssues');
 
     // Define some stuff
     const pending = {};
@@ -89,7 +92,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             const repo = match[2] || `${match[1]}.github.io`;
 
             // Generate body
-            const body = await repoContactIssue(cname, data, issueUrl, true);
+            const body = repoContactIssue(cname, data, issueUrl, true);
 
             // Attempt to create issue
             let issue;
@@ -118,7 +121,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
         }
 
         // Cache latest data
-        await setCache('attemptTargetIssues', { ...pending, ...contact });
+        setCache('attemptTargetIssues', { ...pending, ...contact });
     }
 
     // Done
@@ -150,7 +153,7 @@ const createMainIssue = async () => {
     log('\nStarting createMainIssue process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache('createMainIssue');
+    const cache = getCache('createMainIssue');
     if (cache) {
         log('Cached data found for createMainIssue', chalk.greenBright.bold);
         return cache.html_url;
@@ -246,12 +249,12 @@ const createMainIssue = async () => {
     const contactList = entriesToList(contact);
 
     // Generate the contents
-    const contactIssue = await repoContactIssue(
+    const contactIssue = repoContactIssue(
         'xxx',
         { target: 'xxx', http: 'xxx', https: 'xxx' },
         issue.data.html_url,
         false);
-    const tpl = await fs.readFileSync('templates/main_issue.md', 'utf8');
+    const tpl = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_issue.md'), 'utf8');
     const body = tpl
         .replace(/{{PENDING_LIST}}/g, pendingList.join('\n'))
         .replace(/{{CONTACT_LIST}}/g, contactList.join('\n'))
@@ -266,13 +269,13 @@ const createMainIssue = async () => {
     });
 
     // Save to cache
-    await setCache('createMainIssue', issue.data);
+    setCache('createMainIssue', issue.data);
 
     // Reset cache
     log('  Issue updated with full list', chalk.green);
     log('  Purging cache before completion', chalk.blue);
-    await removeCache('validateCNAMEs');
-    await removeCache('attemptTargetIssues');
+    removeCache('validateCNAMEs');
+    removeCache('attemptTargetIssues');
 
     // Done
     log('Issue creation completed for createMainIssue', chalk.greenBright.bold);
@@ -289,7 +292,7 @@ const parseIssueEntries = async issueNumber => {
     log('\nStarting parseIssueCNAMEs process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache('parseIssueCNAMEs') || {};
+    const cache = getCache('parseIssueCNAMEs') || {};
     if (cache && issueNumber in cache) {
         log(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`, chalk.greenBright.bold);
         return cache[issueNumber];
@@ -308,7 +311,7 @@ const parseIssueEntries = async issueNumber => {
 
     // Cache
     cache[issueNumber] = badCNAMEs;
-    await setCache('parseIssueCNAMEs', cache);
+    setCache('parseIssueCNAMEs', cache);
 
     // Done
     log('Parsing completed for parseIssueCNAMEs', chalk.greenBright.bold);

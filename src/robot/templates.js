@@ -12,10 +12,10 @@ require('../util/types');
 
 /**
  * Generates the robot disclaimer
- * @returns {Promise<string>}
+ * @returns {string}
  */
-const robotDisclaimer = async () => {
-    const template = await fs.readFileSync(join(__dirname, '..', 'templates', 'bot_disclaimer.md'), 'utf8');
+const robotDisclaimer = () => {
+    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'bot_disclaimer.md'), 'utf8');
     return template
         .replace(/{{REPO_OWNER}}/g, config.repository_owner)
         .replace(/{{REPO_NAME}}/g, config.repository_name);
@@ -27,17 +27,17 @@ const robotDisclaimer = async () => {
  * @param {cnameObject} data - The data for the cname given
  * @param {string} issue - The URL of the main cleanup issue
  * @param {boolean} robot - Indicates the robot disclaimer should be applied
- * @returns {Promise<string>}
+ * @returns {string}
  */
 const repoContactIssue = async (cname, data, issue, robot) => {
-    const template = await fs.readFileSync(join(__dirname, '..', 'templates', 'contact_issue.md'), 'utf8');
+    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'contact_issue.md'), 'utf8');
     const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
         .replace(/{{HTTP}}/g, data.http)
         .replace(/{{HTTPS}}/g, data.https)
         .replace(/{{ISSUE}}/g, issue);
-    return `${body}${robot ? `${await robotDisclaimer()}` : ''}`;
+    return `${body}${robot ? `${robotDisclaimer()}` : ''}`;
 };
 
 /**
@@ -45,16 +45,16 @@ const repoContactIssue = async (cname, data, issue, robot) => {
  * @param {int} issueNumber - The associated cleanup issue number
  * @param {Array<string>} stillBadCNAMEs - Bad cnames being removed
  * @param {Array<string>} notBadCNAMEs - Bad cnames not being removed
- * @returns {Promise<string>}
+ * @returns {string}
  */
 const mainPullRequest = async (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
-    const template = await fs.readFileSync(join(__dirname, '..', 'templates', 'main_pr.md'), 'utf8');
+    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_pr.md'), 'utf8');
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
         .replace(/{{ISSUE_NUMBER}}/g, issueNumber)
         .replace(/{{STILL_BAD_CNAMES}}/g, stillBadCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join('\n') || '*None*')
         .replace(/{{NOT_BAD_CNAMES}}/g, notBadCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join('\n') || '*None*');
-    return `${body}${await robotDisclaimer()}`;
+    return `${body}${robotDisclaimer()}`;
 };
 
 // Export

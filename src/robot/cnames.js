@@ -88,7 +88,7 @@ const validateCNAMEs = async (cnames) => {
     log('\nStarting validateCNAMEs process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache('validateCNAMEs');
+    const cache = getCache('validateCNAMEs');
 
     // DEV: only test the first few
     if (config.dev_restrict_cname_count) {
@@ -151,7 +151,7 @@ const validateCNAMEs = async (cnames) => {
         }
 
         // Save to cache
-        await setCache('validateCNAMEs', tests);
+        setCache('validateCNAMEs', tests);
     }
 
     // Done
