@@ -1,14 +1,11 @@
 // Load in custom logging
-const { logDown, logUp, log } = require('./log.js');
+const { log } = require('../util/log');
 
 // Load in custom caching
-const { getCache, setCache } = require('./cache.js');
+const { getCache, setCache } = require('./cache');
 
 // Load in our config
-const config = require('../config.json');
-
-// Load in string formatting
-require('./string.js');
+const config = require('../../config.json');
 
 // Load in URL for checking redirects
 const { URL } = require('url');
@@ -24,7 +21,7 @@ const fetch = require('node-fetch');
 const chalk = require('chalk');
 
 // Load custom jsdoc types
-require('./types.js');
+require('../util/types');
 
 /**
  * Fetches the raw cnames_active file from the configured repository
@@ -47,105 +44,6 @@ const getCNAMEsFile = async () => {
     // Done
     log('Fetching completed for getCNAMEsFile', chalk.greenBright.bold);
     return content;
-};
-
-/**
- * Get all valid CNAME entries from the js.org repository
- * @param {string} [file] - The cnames file to use (will fetch if not provided)
- * @returns {Promise<cnamesObject>} - Every entry in the CNAMEs file
- */
-const getCNAMEs = async (file) => {
-    // Log
-    log('\nStarting getCNAMEs process', chalk.cyanBright.bold);
-
-    // Fetch any cache we have
-    const cache = await getCache('getCNAMEs');
-    if (cache) {
-        log('Cached data found for getCNAMEs', chalk.greenBright.bold);
-        return cache;
-    }
-
-    // Get the raw cnames file
-    if (!file) {
-        logDown();
-        file = await getCNAMEsFile();
-        logUp();
-        log('\nResuming getCNAMEs process', chalk.cyanBright.bold);
-    }
-
-    // Regex time
-    const reg = new RegExp(/[ \t]*[''](.*)[''][ \t]*:[ \t]*[''](.*)[''][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
-    const cnames = {};
-    let match;
-    while ((match = reg.exec(file)) !== null) {
-        cnames[match[1]] = {
-            target: match[2],
-            noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,
-        }
-    }
-
-    // Save to cache
-    await setCache('getCNAMEs', cnames);
-
-    // Done
-    log('Parsing completed for getCNAMEs', chalk.greenBright.bold);
-    return cnames
-};
-
-/**
- * Create a perfectly formatted cnames_active file based on the data provided
- * @param {cnamesObject} cnames - The cnames data to use in the file
- * @param {string} [file] - The cnames file to use (will fetch if not provided)
- * @returns {Promise<?string> | ?string}
- */
-const generateCNAMEsFile = async (cnames, file) => {
-    // Log
-    log('\nStarting generateCNAMEsFile process', chalk.cyanBright.bold);
-
-    // Get the raw cnames file
-    if (!file) {
-        logDown();
-        file = await getCNAMEsFile();
-        logUp();
-        log('\nResuming generateCNAMEsFile process', chalk.cyanBright.bold);
-    }
-
-    // Regex time to find the top/bottom comment blocks
-    const reg = new RegExp(/(\/\*[\S\s]+?\*\/)/g);
-    const commentBlocks = [];
-    let match;
-    while ((match = reg.exec(file)) !== null) {
-        commentBlocks.push(match[1]);
-    }
-
-    // Abort if couldn't find the top/bottom blocks
-    if (commentBlocks.length < 2) {
-        // Log
-        log('  Could not locate top & bottom comment blocks in raw file', chalk.yellow);
-        log('Generation aborted for generateCNAMEsFile', chalk.redBright.bold);
-        return;
-    }
-    log('  Comment blocks located in existing raw file', chalk.blue);
-
-    // Get perfect alphabetical order
-    cnames = Object.fromEntries(Object.entries(cnames).map(entry => [ entry[0].toLowerCase(), entry[1] ]));
-    const cnamesKeys = Object.keys(cnames);
-    cnamesKeys.sort();
-
-    // Generate the new file entries
-    const cnamesList = [];
-    for (const i in cnamesKeys) {
-        const cname = cnamesKeys[i];
-        const data = cnames[cname];
-        cnamesList.push(`  '${cname}': '${data.target}'${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
-    }
-
-    // Format into the new file
-    const content = `${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join('\n')}\n  ${commentBlocks[1]}\n}\n`;
-
-    // Done
-    log('Generation completed for generateCNAMEsFile', chalk.greenBright.bold);
-    return content
 };
 
 /**
@@ -192,10 +90,6 @@ const validateCNAMEs = async (cnames) => {
     // Fetch any cache we have
     const cache = await getCache('validateCNAMEs');
 
-    // Define some stuff
-    const urlBase = 'http{0}://{1}js.org';
-    const tests = {};
-
     // DEV: only test the first few
     if (config.dev_restrict_cname_count) {
         const slice = Object.keys(cnames).slice(10);
@@ -205,6 +99,7 @@ const validateCNAMEs = async (cnames) => {
     }
 
     // Test each entry
+    const tests = {};
     let counter = 0;
     let failedCounter = 0;
     const totalLength = Object.keys(cnames).length;
@@ -217,8 +112,8 @@ const validateCNAMEs = async (cnames) => {
 
         // Set our testing URLs
         const subdomain = cname + (cname === '' ? '' : '.');
-        const urlHttp = urlBase.format('', subdomain);
-        const urlHttps = urlBase.format('s', subdomain);
+        const urlHttp = `http://${subdomain}js.org`;
+        const urlHttps = `https://${subdomain}js.org`;
 
         // If in cache, use that
         if (cache && cname in cache) {
@@ -273,4 +168,4 @@ const validateCNAMEs = async (cnames) => {
 };
 
 // Export
-module.exports = { getCNAMEsFile, getCNAMEs, generateCNAMEsFile, validateCNAMEs };
+module.exports = { getCNAMEsFile, validateCNAMEs };

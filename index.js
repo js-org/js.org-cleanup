@@ -1,14 +1,14 @@
 // Load in custom logging
-const { log } = require('./src/log.js');
+const { log } = require('./src/util/log');
 
 // Load in chalk for logging
 const chalk = require('chalk');
 
 // Load in pr actions
-const { perfectCNAMEsFile, mainCleanupPull } = require('./src/prs.js');
+const { perfectCNAMEsFile, mainCleanupPull } = require('./src/robot/prs');
 
 // Load in issue operations
-const { createMainIssue } = require('./src/issues.js');
+const { createMainIssue } = require('./src/robot/issues');
 
 /**
  * Show an error message in console explaining the command line argument choices

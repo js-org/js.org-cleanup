@@ -1,20 +1,21 @@
 // Load in custom logging
-const { logDown, logUp, log } = require('./log.js');
+const { logDown, logUp, log } = require('../util/log');
 
 // Load in custom caching
-const { getCache, setCache, removeCache } = require('./cache.js');
+const { getCache, setCache, removeCache } = require('./cache');
 
 // Load in templates
-const { robotDisclaimer, mainPullRequest } = require('./templates.js');
+const { robotDisclaimer, mainPullRequest } = require('./templates');
 
 // Load in all the cnames stuff
-const { getCNAMEsFile, getCNAMEs, generateCNAMEsFile, validateCNAMEs } = require('./cnames.js');
+const { getCNAMEsFile, validateCNAMEs } = require('./cnames');
+const { parseCNAMEsFile, generateCNAMEsFile } = require('../util/cnames');
 
 // Load in issue related actions
-const { parseIssueEntries } = require('./issues.js');
+const { parseIssueEntries } = require('./issues');
 
 // Load in our config
-const config = require('../config.json');
+const config = require('../../config.json');
 
 // Load in Octokit for GitHub API
 const Octokit = require('@octokit/rest').plugin(require('octokit-create-pull-request'));
@@ -38,12 +39,12 @@ const perfectCNAMEsFile = async () => {
 
     // Get the raw cnames
     logDown();
-    const cnames = await getCNAMEs(file);
+    const cnames = parseCNAMEsFile(file);
     logUp();
 
     // Get the new file
     logDown();
-    const newFile = await generateCNAMEsFile(cnames, file);
+    const newFile = generateCNAMEsFile(cnames, file);
     logUp();
 
     // Log
@@ -51,15 +52,8 @@ const perfectCNAMEsFile = async () => {
 
     // Compare
     if (newFile === file) {
-        // Log
-        log('  Existing file is already perfect, no changes', chalk.green);
-
-        // Reset cache
-        log('  Purging cache before completion', chalk.blue);
-        await removeCache('getCNAMEs');
-        await removeCache('generateCNAMEsFile');
-
         // Done
+        log('  Existing file is already perfect, no changes', chalk.green);
         log('Generation completed for perfectCNAMEsFile', chalk.greenBright.bold);
         return;
     }
@@ -81,13 +75,8 @@ const perfectCNAMEsFile = async () => {
         }
     });
 
-    // Reset cache
-    log('    ...pull request created', chalk.green);
-    log('  Purging cache before completion', chalk.blue);
-    await removeCache('getCNAMEs');
-    await removeCache('generateCNAMEsFile');
-
     // Done
+    log('    ...pull request created', chalk.green);
     log('Generation completed for perfectCNAMEsFile', chalk.greenBright.bold);
     return pr.data.html_url;
 };
@@ -126,9 +115,9 @@ const mainCleanupPull = async issueNumber => {
     const file = await getCNAMEsFile();
     logUp();
 
-    // Fetch all cname data
+    // Get the raw cnames
     logDown();
-    const allCNAMEs = await getCNAMEs(file);
+    const allCNAMEs = parseCNAMEsFile(file);
     logUp();
 
     // Get the bad cnames (convert to fake cnamesObject)
@@ -166,7 +155,7 @@ const mainCleanupPull = async issueNumber => {
 
     // Generate new cnames_active
     logDown();
-    const cnamesActive = await generateCNAMEsFile(newCNAMEs, file);
+    const cnamesActive = generateCNAMEsFile(newCNAMEs, file);
     logUp();
 
     // Log
@@ -198,7 +187,6 @@ const mainCleanupPull = async issueNumber => {
 
     // Reset cache
     log('  Purging cache before completion', chalk.blue);
-    await removeCache('getCNAMEs');
     await removeCache('validateCNAMEs');
     await removeCache('parseIssueCNAMEs');
 

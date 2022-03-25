@@ -1,5 +1,5 @@
 // Load in our config
-const config = require('../config.json');
+const config = require('../../config.json');
 
 // Load in fs for files
 const fs = require('fs');
@@ -8,7 +8,7 @@ const fs = require('fs');
 const { join } = require('path');
 
 // Load custom jsdoc types
-require('./types.js');
+require('../util/types');
 
 /**
  * Generates the robot disclaimer

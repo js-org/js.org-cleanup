@@ -1,20 +1,21 @@
 // Load in custom logging
-const { logDown, logUp, log } = require('./log.js');
+const { logDown, logUp, log } = require('../util/log');
 
 // Load in custom caching
-const { getCache, setCache, removeCache } = require('./cache.js');
+const { getCache, setCache, removeCache } = require('./cache');
 
 // Load in our config
-const config = require('../config.json');
+const config = require('../../config.json');
 
-// Load in CNAME operation
-const { getCNAMEs, validateCNAMEs } = require('./cnames.js');
+// Load in all the cnames stuff
+const { getCNAMEsFile, validateCNAMEs } = require('./cnames');
+const { parseCNAMEsFile } = require('../util/cnames');
 
 // Load in templates
-const { repoContactIssue } = require('./templates.js');
+const { repoContactIssue } = require('./templates');
 
 // Load in confirm script
-const confirm = require('./confirm.js');
+const confirm = require('./confirm');
 
 // Load in Octokit for GitHub API
 const Octokit = require('@octokit/rest');
@@ -27,7 +28,7 @@ const fs = require('fs');
 const chalk = require('chalk');
 
 // Load custom jsdoc types
-require('./types.js');
+require('../util/types');
 
 /**
  * Attempt to make contact via GitHub issues on failed cname entries
@@ -155,9 +156,14 @@ const createMainIssue = async () => {
         return cache.html_url;
     }
 
-    // Get the CNAMEs
+    // Get the original file
     logDown();
-    const cnames = await getCNAMEs();
+    const file = await getCNAMEsFile();
+    logUp();
+
+    // Get the raw cnames
+    logDown();
+    const cnames = parseCNAMEsFile(file);
     logUp();
 
     // Get the failed CNAMEs
@@ -265,7 +271,6 @@ const createMainIssue = async () => {
     // Reset cache
     log('  Issue updated with full list', chalk.green);
     log('  Purging cache before completion', chalk.blue);
-    await removeCache('getCNAMEs');
     await removeCache('validateCNAMEs');
     await removeCache('attemptTargetIssues');
 
