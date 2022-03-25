@@ -1,33 +1,33 @@
 // Load in custom logging
-const {logDown, logUp, log} = require("./log.js");
+const { logDown, logUp, log } = require('./log.js');
 
 // Load in custom caching
-const {getCache, setCache, removeCache} = require("./cache.js");
+const { getCache, setCache, removeCache } = require('./cache.js');
 
 // Load in our config
-const config = require("../config.json");
+const config = require('../config.json');
 
 // Load in CNAME operation
-const {getCNAMEs, validateCNAMEs} = require("./cnames.js");
+const { getCNAMEs, validateCNAMEs } = require('./cnames.js');
 
 // Load in templates
-const {repoContactIssue} = require("./templates.js");
+const { repoContactIssue } = require('./templates.js');
 
 // Load in confirm script
-const confirm = require("./confirm.js");
+const confirm = require('./confirm.js');
 
 // Load in Octokit for GitHub API
-const Octokit = require("@octokit/rest");
-const octokit = new Octokit({auth: config.github_token});
+const Octokit = require('@octokit/rest');
+const octokit = new Octokit({ auth: config.github_token });
 
 // Load in fs for files
-const fs = require("fs");
+const fs = require('fs');
 
 // Load in chalk for logging
-const chalk = require("chalk");
+const chalk = require('chalk');
 
 // Load custom jsdoc types
-require("./types.js");
+require('./types.js');
 
 /**
  * Attempt to make contact via GitHub issues on failed cname entries
@@ -37,10 +37,10 @@ require("./types.js");
  */
 const attemptTargetIssues = async (failed, issueUrl) => {
     // Log
-    log("\nStarting attemptTargetIssues process", chalk.cyanBright.bold);
+    log('\nStarting attemptTargetIssues process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache("attemptTargetIssues");
+    const cache = await getCache('attemptTargetIssues');
 
     // Define some stuff
     const pending = {};
@@ -79,7 +79,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
         const match = reg.exec(data.target);
         if (!match) {
             // Not a github.io target
-            log("    ...failed, not a github target", chalk.yellow);
+            log('    ...failed, not a github target', chalk.yellow);
             data.contact = false;
             pending[cname] = data;
         } else {
@@ -96,7 +96,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
                 issue = await octokit.issues.create({
                     owner,
                     repo,
-                    title: "JS.ORG CLEANUP",
+                    title: 'JS.ORG CLEANUP',
                     body
                 });
             } catch (err) {
@@ -104,11 +104,11 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
             // Abort if no issue, else save issue data
             if (!issue || !issue.data) {
-                log("    ...failed, could not create issue", chalk.yellow);
+                log('    ...failed, could not create issue', chalk.yellow);
                 data.contact = false;
                 pending[cname] = data;
             } else {
-                log("    ...succeeded", chalk.green);
+                log('    ...succeeded', chalk.green);
                 successCounter++;
                 data.issue = issue.data;
                 data.contact = true;
@@ -117,12 +117,12 @@ const attemptTargetIssues = async (failed, issueUrl) => {
         }
 
         // Cache latest data
-        await setCache("attemptTargetIssues", {...pending, ...contact});
+        await setCache('attemptTargetIssues', { ...pending, ...contact });
     }
 
     // Done
-    log("Attempts completed for attemptTargetIssues", chalk.greenBright.bold);
-    return {pending, contact}
+    log('Attempts completed for attemptTargetIssues', chalk.greenBright.bold);
+    return { pending, contact }
 };
 
 /**
@@ -135,7 +135,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ""}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
     }
     return list;
 };
@@ -146,12 +146,12 @@ const entriesToList = cnames => {
  */
 const createMainIssue = async () => {
     // Log
-    log("\nStarting createMainIssue process", chalk.cyanBright.bold);
+    log('\nStarting createMainIssue process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache("createMainIssue");
+    const cache = await getCache('createMainIssue');
     if (cache) {
-        log("Cached data found for createMainIssue", chalk.greenBright.bold);
+        log('Cached data found for createMainIssue', chalk.greenBright.bold);
         return cache.html_url;
     }
 
@@ -173,50 +173,50 @@ const createMainIssue = async () => {
             delete failed[cname];
         }
         // Should be able to create automatic contact issue
-        failed["test"] = {
-            target: "js-org-cleanup.github.io/test-repo-2",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
+        failed['test'] = {
+            target: 'js-org-cleanup.github.io/test-repo-2',
+            http: 'Failed with status code \'404 Not Found\'',
+            https: 'Failed with status code \'404 Not Found\'',
             failed: true
         };
         // Issues disabled on repo, automatic should fail
-        failed["test-other"] = {
-            target: "js-org-cleanup.github.io/test-repo-3",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
+        failed['test-other'] = {
+            target: 'js-org-cleanup.github.io/test-repo-3',
+            http: 'Failed with status code \'404 Not Found\'',
+            https: 'Failed with status code \'404 Not Found\'',
             failed: true
         };
         // Repo doesn't exist, should fail on automatic contact
-        failed["test-gone"] = {
-            target: "js-org-cleanup.github.io",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
+        failed['test-gone'] = {
+            target: 'js-org-cleanup.github.io',
+            http: 'Failed with status code \'404 Not Found\'',
+            https: 'Failed with status code \'404 Not Found\'',
             failed: true
         };
         // External domain, shouldn't try automatic contact
-        failed["custom"] = {
-            target: "custom-target.test.com",
-            http: "Failed with status code '404 Not Found'",
-            https: "Failed with status code '404 Not Found'",
+        failed['custom'] = {
+            target: 'custom-target.test.com',
+            http: 'Failed with status code \'404 Not Found\'',
+            https: 'Failed with status code \'404 Not Found\'',
             failed: true
         };
     }
 
     // Wait for confirmation
-    let ans = "";
-    while (ans.toString().toLowerCase().trim() !== "confirm") {
-        ans = await confirm("Enter 'confirm' to begin creating issues...\n");
+    let ans = '';
+    while (ans.toString().toLowerCase().trim() !== 'confirm') {
+        ans = await confirm('Enter \'confirm\' to begin creating issues...\n');
     }
 
     // Log
-    log("\nResuming createMainIssue process", chalk.cyanBright.bold);
+    log('\nResuming createMainIssue process', chalk.cyanBright.bold);
 
     // Create new empty issue (change this for DEV)
     const issue = await octokit.issues.create({
         owner: config.repository_owner,
         repo: config.repository_name,
-        title: "JS.ORG CLEANUP",
-        body: "Automatic initial cleanup contact in progress... this issue will be updated shortly."
+        title: 'JS.ORG CLEANUP',
+        body: 'Automatic initial cleanup contact in progress... this issue will be updated shortly.'
     });
 
     let pending = failed;
@@ -232,7 +232,7 @@ const createMainIssue = async () => {
         contact = res.contact;
 
         // Log resume
-        log("\nResuming createMainIssue process", chalk.cyanBright.bold);
+        log('\nResuming createMainIssue process', chalk.cyanBright.bold);
     }
 
     // Convert them to MD list
@@ -241,14 +241,14 @@ const createMainIssue = async () => {
 
     // Generate the contents
     const contactIssue = await repoContactIssue(
-        "xxx",
-        {target: "xxx", http: "xxx", https: "xxx"},
+        'xxx',
+        { target: 'xxx', http: 'xxx', https: 'xxx' },
         issue.data.html_url,
         false);
-    const tpl = await fs.readFileSync("templates/main_issue.md", "utf8");
+    const tpl = await fs.readFileSync('templates/main_issue.md', 'utf8');
     const body = tpl
-        .replace(/{{PENDING_LIST}}/g, pendingList.join("\n"))
-        .replace(/{{CONTACT_LIST}}/g, contactList.join("\n"))
+        .replace(/{{PENDING_LIST}}/g, pendingList.join('\n'))
+        .replace(/{{CONTACT_LIST}}/g, contactList.join('\n'))
         .replace(/{{CONTACT_ISSUE}}/g, contactIssue);
 
     // Edit the issue
@@ -260,17 +260,17 @@ const createMainIssue = async () => {
     });
 
     // Save to cache
-    await setCache("createMainIssue", issue.data);
+    await setCache('createMainIssue', issue.data);
 
     // Reset cache
-    log("  Issue updated with full list", chalk.green);
-    log("  Purging cache before completion", chalk.blue);
-    await removeCache("getCNAMEs");
-    await removeCache("validateCNAMEs");
-    await removeCache("attemptTargetIssues");
+    log('  Issue updated with full list', chalk.green);
+    log('  Purging cache before completion', chalk.blue);
+    await removeCache('getCNAMEs');
+    await removeCache('validateCNAMEs');
+    await removeCache('attemptTargetIssues');
 
     // Done
-    log("Issue creation completed for createMainIssue", chalk.greenBright.bold);
+    log('Issue creation completed for createMainIssue', chalk.greenBright.bold);
     return issue.data.html_url;
 };
 
@@ -281,10 +281,10 @@ const createMainIssue = async () => {
  */
 const parseIssueEntries = async issueNumber => {
     // Log
-    log("\nStarting parseIssueCNAMEs process", chalk.cyanBright.bold);
+    log('\nStarting parseIssueCNAMEs process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache("parseIssueCNAMEs") || {};
+    const cache = await getCache('parseIssueCNAMEs') || {};
     if (cache && issueNumber in cache) {
         log(`Cached data found for parseIssueCNAMEs w/ #${issueNumber}`, chalk.greenBright.bold);
         return cache[issueNumber];
@@ -299,16 +299,16 @@ const parseIssueEntries = async issueNumber => {
 
     // Regex time
     const reg = new RegExp(/^- \[ ] \*\*(\S+?)\.js\.org\*\* > (\S+)$/gm);
-    const badCNAMEs = [...issue.data.body.matchAll(reg)].map(match => match[1]);
+    const badCNAMEs = [ ...issue.data.body.matchAll(reg) ].map(match => match[1]);
 
     // Cache
     cache[issueNumber] = badCNAMEs;
-    await setCache("parseIssueCNAMEs", cache);
+    await setCache('parseIssueCNAMEs', cache);
 
     // Done
-    log("Parsing completed for parseIssueCNAMEs", chalk.greenBright.bold);
+    log('Parsing completed for parseIssueCNAMEs', chalk.greenBright.bold);
     return badCNAMEs;
 };
 
 // Export
-module.exports = {createMainIssue, parseIssueEntries};
+module.exports = { createMainIssue, parseIssueEntries };

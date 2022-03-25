@@ -1,30 +1,30 @@
 // Load in custom logging
-const { logDown, logUp, log } = require("./log.js");
+const { logDown, logUp, log } = require('./log.js');
 
 // Load in custom caching
-const { getCache, setCache } = require("./cache.js");
+const { getCache, setCache } = require('./cache.js');
 
 // Load in our config
-const config = require("../config.json");
+const config = require('../config.json');
 
 // Load in string formatting
-require("./string.js");
+require('./string.js');
 
 // Load in URL for checking redirects
-const { URL } = require("url");
+const { URL } = require('url');
 
 // Load in Octokit for GitHub API
-const Octokit = require("@octokit/rest");
+const Octokit = require('@octokit/rest');
 const octokit = new Octokit();
 
 // Load in fetch for URL testing
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 
 // Load in chalk for logging
-const chalk = require("chalk");
+const chalk = require('chalk');
 
 // Load custom jsdoc types
-require("./types.js");
+require('./types.js');
 
 /**
  * Fetches the raw cnames_active file from the configured repository
@@ -32,20 +32,20 @@ require("./types.js");
  */
 const getCNAMEsFile = async () => {
     // Log
-    log("\nStarting getCNAMEsFile process", chalk.cyanBright.bold);
+    log('\nStarting getCNAMEsFile process', chalk.cyanBright.bold);
 
     // Get the raw GitHub API data
     const req = await octokit.repos.getContents({
         owner: config.repository_owner,
         repo: config.repository_name,
-        path: "cnames_active.js"
+        path: 'cnames_active.js'
     });
 
     // Get the contents of the file
     const content = Buffer.from(req.data.content, req.data.encoding).toString();
 
     // Done
-    log("Fetching completed for getCNAMEsFile", chalk.greenBright.bold);
+    log('Fetching completed for getCNAMEsFile', chalk.greenBright.bold);
     return content;
 };
 
@@ -56,12 +56,12 @@ const getCNAMEsFile = async () => {
  */
 const getCNAMEs = async (file) => {
     // Log
-    log("\nStarting getCNAMEs process", chalk.cyanBright.bold);
+    log('\nStarting getCNAMEs process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache("getCNAMEs");
+    const cache = await getCache('getCNAMEs');
     if (cache) {
-        log("Cached data found for getCNAMEs", chalk.greenBright.bold);
+        log('Cached data found for getCNAMEs', chalk.greenBright.bold);
         return cache;
     }
 
@@ -70,11 +70,11 @@ const getCNAMEs = async (file) => {
         logDown();
         file = await getCNAMEsFile();
         logUp();
-        log("\nResuming getCNAMEs process", chalk.cyanBright.bold);
+        log('\nResuming getCNAMEs process', chalk.cyanBright.bold);
     }
 
     // Regex time
-    const reg = new RegExp(/[ \t]*["'](.*)["'][ \t]*:[ \t]*["'](.*)["'][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
+    const reg = new RegExp(/[ \t]*[''](.*)[''][ \t]*:[ \t]*[''](.*)[''][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
     const cnames = {};
     let match;
     while ((match = reg.exec(file)) !== null) {
@@ -85,10 +85,10 @@ const getCNAMEs = async (file) => {
     }
 
     // Save to cache
-    await setCache("getCNAMEs", cnames);
+    await setCache('getCNAMEs', cnames);
 
     // Done
-    log("Parsing completed for getCNAMEs", chalk.greenBright.bold);
+    log('Parsing completed for getCNAMEs', chalk.greenBright.bold);
     return cnames
 };
 
@@ -100,14 +100,14 @@ const getCNAMEs = async (file) => {
  */
 const generateCNAMEsFile = async (cnames, file) => {
     // Log
-    log("\nStarting generateCNAMEsFile process", chalk.cyanBright.bold);
+    log('\nStarting generateCNAMEsFile process', chalk.cyanBright.bold);
 
     // Get the raw cnames file
     if (!file) {
         logDown();
         file = await getCNAMEsFile();
         logUp();
-        log("\nResuming generateCNAMEsFile process", chalk.cyanBright.bold);
+        log('\nResuming generateCNAMEsFile process', chalk.cyanBright.bold);
     }
 
     // Regex time to find the top/bottom comment blocks
@@ -121,14 +121,14 @@ const generateCNAMEsFile = async (cnames, file) => {
     // Abort if couldn't find the top/bottom blocks
     if (commentBlocks.length < 2) {
         // Log
-        log("  Could not locate top & bottom comment blocks in raw file", chalk.yellow);
-        log("Generation aborted for generateCNAMEsFile", chalk.redBright.bold);
+        log('  Could not locate top & bottom comment blocks in raw file', chalk.yellow);
+        log('Generation aborted for generateCNAMEsFile', chalk.redBright.bold);
         return;
     }
-    log("  Comment blocks located in existing raw file", chalk.blue);
+    log('  Comment blocks located in existing raw file', chalk.blue);
 
     // Get perfect alphabetical order
-    cnames = Object.fromEntries(Object.entries(cnames).map(entry => [entry[0].toLowerCase(), entry[1]]));
+    cnames = Object.fromEntries(Object.entries(cnames).map(entry => [ entry[0].toLowerCase(), entry[1] ]));
     const cnamesKeys = Object.keys(cnames);
     cnamesKeys.sort();
 
@@ -137,14 +137,14 @@ const generateCNAMEsFile = async (cnames, file) => {
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
         const data = cnames[cname];
-        cnamesList.push(`  "${cname}": "${data.target}"${Number(i) === cnamesKeys.length - 1 ? "" : ","}${data.noCF ? ` ${data.noCF}` : ""}`)
+        cnamesList.push(`  '${cname}': '${data.target}'${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
     }
 
     // Format into the new file
-    const content = `${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join("\n")}\n  ${commentBlocks[1]}\n}\n`;
+    const content = `${commentBlocks[0]}\n\nvar cnames_active = {\n${cnamesList.join('\n')}\n  ${commentBlocks[1]}\n}\n`;
 
     // Done
-    log("Generation completed for generateCNAMEsFile", chalk.greenBright.bold);
+    log('Generation completed for generateCNAMEsFile', chalk.greenBright.bold);
     return content
 };
 
@@ -157,22 +157,25 @@ const testUrl = async url => {
     let resp;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
+
     try {
         resp = await fetch(url, { signal: controller.signal });
     } catch (err) {
-        if (err.name === "AbortError") return "Failed due to time out after 5s";
+        if (err.name === 'AbortError') return 'Failed due to time out after 5s';
         return `Failed during request with error '${err}'`;
     } finally {
         clearTimeout(timer);
     }
+
     if (!resp.ok) {
         return `Failed with status code '${resp.status} ${resp.statusText}'`;
     }
     if (resp.redirected && !(new URL(resp.url).origin.endsWith('.js.org'))) {
         return `Failed due to automatic redirect to '${resp.url}'`;
     }
+
     const text = await resp.text();
-    if (text.toLowerCase().trim() === "") {
+    if (text.toLowerCase().trim() === '') {
         return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`;
     }
 };
@@ -184,13 +187,13 @@ const testUrl = async url => {
  */
 const validateCNAMEs = async (cnames) => {
     // Log
-    log("\nStarting validateCNAMEs process", chalk.cyanBright.bold);
+    log('\nStarting validateCNAMEs process', chalk.cyanBright.bold);
 
     // Fetch any cache we have
-    const cache = await getCache("validateCNAMEs");
+    const cache = await getCache('validateCNAMEs');
 
     // Define some stuff
-    const urlBase = "http{0}://{1}js.org";
+    const urlBase = 'http{0}://{1}js.org';
     const tests = {};
 
     // DEV: only test the first few
@@ -213,9 +216,9 @@ const validateCNAMEs = async (cnames) => {
         const position = `${counter.toLocaleString()}/${totalLength.toLocaleString()} ${Math.round(counter / totalLength * 100).toLocaleString()}% (Failures: ${failedCounter.toLocaleString()} ${Math.round(failedCounter / totalLength * 100).toLocaleString()}%)`;
 
         // Set our testing URLs
-        const subdomain = cname + (cname == "" ? "" : ".");
-        const urlHttp = urlBase.format("", subdomain);
-        const urlHttps = urlBase.format("s", subdomain);
+        const subdomain = cname + (cname === '' ? '' : '.');
+        const urlHttp = urlBase.format('', subdomain);
+        const urlHttps = urlBase.format('s', subdomain);
 
         // If in cache, use that
         if (cache && cname in cache) {
@@ -253,7 +256,7 @@ const validateCNAMEs = async (cnames) => {
         }
 
         // Save to cache
-        await setCache("validateCNAMEs", tests);
+        await setCache('validateCNAMEs', tests);
     }
 
     // Done
@@ -265,7 +268,7 @@ const validateCNAMEs = async (cnames) => {
         if (data.failed) failed[cname] = data;
         else passed[cname] = data;
     }
-    log("Testing completed for validateCNAMEs", chalk.greenBright.bold);
+    log('Testing completed for validateCNAMEs', chalk.greenBright.bold);
     return { failed, passed }
 };
 

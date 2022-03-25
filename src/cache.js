@@ -1,8 +1,8 @@
 // Load in fs for files
-const fs = require("fs");
+const fs = require('fs');
 
 // Load in path joining
-const { join } = require("path");
+const { join } = require('path');
 
 /**
  * Fetch cached data for the given function name
@@ -10,9 +10,9 @@ const { join } = require("path");
  * @returns {Promise<?*> | ?*}
  */
 const getCache = async name => {
-    const path = join(__dirname, "..", "cache", `${name}.json`);
+    const path = join(__dirname, '..', 'cache', `${name}.json`);
     if (!fs.existsSync(path)) return;
-    const file = await fs.readFileSync(path, "utf8");
+    const file = await fs.readFileSync(path, 'utf8');
     if (!file) return;
     const data = JSON.parse(file);
     if (!data) return;
@@ -26,10 +26,10 @@ const getCache = async name => {
  * @returns {Promise<void>}
  */
 const setCache = async (name, contents) => {
-    if (!fs.existsSync(join(__dirname, "..", "cache"))) {
-        await fs.mkdirSync("cache")
+    if (!fs.existsSync(join(__dirname, '..', 'cache'))) {
+        await fs.mkdirSync('cache')
     }
-    const path = join(__dirname, "..", "cache", `${name}.json`);
+    const path = join(__dirname, '..', 'cache', `${name}.json`);
     const data = JSON.stringify(contents);
     await fs.writeFileSync(path, data);
 };
@@ -40,10 +40,10 @@ const setCache = async (name, contents) => {
  * @returns {Promise<void>}
  */
 const removeCache = async name => {
-    const path = join(__dirname, "..", "cache", `${name}.json`);
+    const path = join(__dirname, '..', 'cache', `${name}.json`);
     if (!fs.existsSync(path)) return;
     await fs.unlinkSync(path);
 };
 
 // Export
-module.exports = {getCache, setCache, removeCache};
+module.exports = { getCache, setCache, removeCache };

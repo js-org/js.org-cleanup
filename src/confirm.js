@@ -1,4 +1,4 @@
-const readline = require("readline");
+const readline = require('readline');
 
 /**
  * Asks the query in the shell and returns the response

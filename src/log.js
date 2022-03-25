@@ -1,5 +1,5 @@
 // Load in chalk for logging
-const chalk = require("chalk");
+const chalk = require('chalk');
 
 // The global log level
 let logLevel = 0;
@@ -29,12 +29,12 @@ const logUp = () => {
 const log = (message, chalkColor) => {
     if (typeof message !== 'string') return;
     if (chalkColor === undefined) chalkColor = chalk.default;
-    const indent = chalk.grey(`${">".repeat(logLevel)}${logLevel === 0 ? "" : " "}`);
-    const lines = message.split("\n");
+    const indent = chalk.grey(`${'>'.repeat(logLevel)}${logLevel === 0 ? '' : ' '}`);
+    const lines = message.split('\n');
     lines.forEach(line => {
-        console.log(`${line ? indent : ""}${chalkColor(line)}`);
+        console.log(`${line ? indent : ''}${chalkColor(line)}`);
     });
 };
 
 // Export
-module.exports = {logDown, logUp, log};
+module.exports = { logDown, logUp, log };
