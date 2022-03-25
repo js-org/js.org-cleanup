@@ -17,7 +17,7 @@ const parseCNAMEsFile = (content) => {
     log('\nStarting parseCNAMEsFile process', chalk.cyanBright.bold);
 
     // Regex time
-    const reg = new RegExp(/[ \t]*[''](.*)[''][ \t]*:[ \t]*[''](.*)[''][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
+    const reg = new RegExp(/[ \t]*['"](.*)['"][ \t]*:[ \t]*['"](.*)['"][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
     const cnames = {};
     let match;
     while ((match = reg.exec(content)) !== null) {
@@ -69,7 +69,7 @@ const generateCNAMEsFile = (cnames, file) => {
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
         const data = cnames[cname];
-        cnamesList.push(`  '${cname}': '${data.target}'${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
+        cnamesList.push(`  "${cname}": "${data.target}"${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
     }
 
     // Format into the new file

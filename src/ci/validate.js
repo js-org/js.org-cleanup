@@ -10,6 +10,9 @@ const chalk = require('chalk');
 // Load in fs for files
 const fs = require('fs');
 
+// Load in diff for comparing files
+const diff = require('diff');
+
 /**
  * Read in a cnames_active file content from a provided file path
  * @param {string} file - File path for cnames_active file to read
@@ -53,9 +56,45 @@ const validateCNAMEsFile = (file) => {
     // Log
     log('\nResuming validateCNAMEsFile process', chalk.cyanBright.bold);
 
-    // TODO: Check diff
-    // TODO: Report diff
-    // TODO: Exit status
+    // Report diff
+    let line = 0;
+    const diffContent = diff.diffLines(content, newContent);
+    for (let i = 0; i < diffContent.length; i++) {
+        const part = diffContent[i];
+        const previousPart = i > 0 ? diffContent[i - 1] : null;
+
+        if (part.added || part.removed) {
+            const partLines = part.value.trim().split('\n');
+            const previousPartLines = previousPart ? previousPart.value.trim().split('\n') : null;
+
+            for (let j = 0; j < partLines.length; j++) {
+                const partLine = partLines[j];
+
+                if (part.added) {
+                    if (previousPart && previousPart.removed && j < previousPartLines.length) {
+                        const previousPartLine = previousPartLines[j];
+                        log(`Line ${line + 1}: Expected to find '${partLine}', but found '${previousPartLine}'`, chalk.redBright.bold);
+                    } else {
+                        log(`Line ${line + 1}: Expected to find '${partLine}', but found nothing`, chalk.redBright.bold);
+                    }
+                } else {
+                    log(`Line ${line + 1}: Expected to find nothing, but found '${partLine}'`, chalk.redBright.bold);
+
+                    // Increase line count if from old content
+                    line++;
+                }
+            }
+        }
+
+        // Increase line count if from old content
+        if (!part.added && !part.removed) line += part.value.trim().split('\n').length;
+    }
+
+    // Done
+    const fail = content !== newContent;
+    log(`Validation ${fail ? 'failed' : 'completed'} for validateCNAMEsFile`,
+        fail ? chalk.redBright.bold : chalk.greenBright.bold);
+    process.exit(fail ? 1 : 0);
 };
 
 // Export
