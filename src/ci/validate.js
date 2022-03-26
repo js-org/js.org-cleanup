@@ -64,8 +64,8 @@ const validateCNAMEsFile = (file) => {
         const previousPart = i > 0 ? diffContent[i - 1] : null;
 
         if (part.added || part.removed) {
-            const partLines = part.value.trim().split('\n');
-            const previousPartLines = previousPart ? previousPart.value.trim().split('\n') : null;
+            const partLines = part.value.slice(0, -1).split('\n');
+            const previousPartLines = previousPart ? previousPart.value.slice(0, -1).split('\n') : null;
 
             for (let j = 0; j < partLines.length; j++) {
                 const partLine = partLines[j];
@@ -73,12 +73,13 @@ const validateCNAMEsFile = (file) => {
                 if (part.added) {
                     if (previousPart && previousPart.removed && j < previousPartLines.length) {
                         const previousPartLine = previousPartLines[j];
-                        log(`Line ${line + 1}: Expected to find '${partLine}', but found '${previousPartLine}'`, chalk.redBright.bold);
+                        log(`Line ${line + 1}: Expected: '${partLine}'`, chalk.redBright);
+                        log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${previousPartLine}'`, chalk.redBright);
                     } else {
-                        log(`Line ${line + 1}: Expected to find '${partLine}', but found nothing`, chalk.redBright.bold);
+                        log(`Line ${line}: Expected to find '${partLine}' after existing line`, chalk.redBright);
                     }
                 } else {
-                    log(`Line ${line + 1}: Expected to find nothing, but found '${partLine}'`, chalk.redBright.bold);
+                    log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
 
                     // Increase line count if from old content
                     line++;
@@ -87,7 +88,7 @@ const validateCNAMEsFile = (file) => {
         }
 
         // Increase line count if from old content
-        if (!part.added && !part.removed) line += part.value.trim().split('\n').length;
+        if (!part.added && !part.removed) line += part.value.slice(0, -1).split('\n').length;
     }
 
     // Done
