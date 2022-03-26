@@ -10,17 +10,45 @@ require('./types');
 /**
  * Parse cnames data from provided cnames file content
  * @param {string} content - The cnames file content to parse
- * @returns {cnamesObject}
+ * @returns {?cnamesObject}
  */
 const parseCNAMEsFile = (content) => {
     // Log
     log('\nStarting parseCNAMEsFile process', chalk.cyanBright.bold);
 
+    const lines = content.split('\n');
+
+    // Locate var line
+    const varLine = lines.findIndex(line => /^var cnames_active = {[ \t]*$/.test(line));
+    if (varLine === -1) {
+        // Log
+        log('  Could not locate the var declaration for cnames_active object', chalk.yellow);
+        log('Parsing aborted for parseCNAMEsFile', chalk.redBright.bold);
+        return null;
+    }
+
+    // Locate the closing comment + bracket
+    const closingLine = lines.findIndex((_, idx) => idx > varLine &&
+        /^[ \t]*\/\*[\S\s]+?\*\/[ \t]*\n};?[ \t]*(\n|$)/.test(lines.slice(idx).join('\n')));
+    if (closingLine === -1) {
+        // Log
+        log('  Could not locate the closing comment and curly bracket for cnames_active object', chalk.yellow);
+        log('Parsing aborted for parseCNAMEsFile', chalk.redBright.bold);
+        return null;
+    }
+
     // Regex time
-    const reg = new RegExp(/[ \t]*['"](.*)['"][ \t]*:[ \t]*['"](.*)['"][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*\n/g);
+    const reg = new RegExp(/^[ \t]*['"](.*)['"][ \t]*:[ \t]*['"](.*)['"][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*$/);
     const cnames = {};
-    let match;
-    while ((match = reg.exec(content)) !== null) {
+    for (let i = varLine + 1; i < closingLine; i++) {
+        const line = lines[i];
+        const match = line.match(reg);
+
+        if (!match) {
+            log(`  Could not parse line '${line}' of cnames_active object`, chalk.yellow);
+            continue;
+        }
+
         cnames[match[1]] = {
             target: match[2],
             noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,

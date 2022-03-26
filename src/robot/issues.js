@@ -146,7 +146,7 @@ const entriesToList = cnames => {
 
 /**
  * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
- * @returns {Promise<string>}
+ * @returns {Promise<?string>}
  */
 const createMainIssue = async () => {
     // Log
@@ -167,6 +167,7 @@ const createMainIssue = async () => {
     // Get the raw cnames
     logDown();
     const cnames = parseCNAMEsFile(file);
+    if (!cnames) return null;
     logUp();
 
     // Get the failed CNAMEs

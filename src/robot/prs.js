@@ -40,11 +40,13 @@ const perfectCNAMEsFile = async () => {
     // Get the raw cnames
     logDown();
     const cnames = parseCNAMEsFile(file);
+    if (!cnames) return;
     logUp();
 
     // Get the new file
     logDown();
     const newFile = generateCNAMEsFile(cnames, file);
+    if (!newFile) return;
     logUp();
 
     // Log
@@ -118,6 +120,7 @@ const mainCleanupPull = async issueNumber => {
     // Get the raw cnames
     logDown();
     const allCNAMEs = parseCNAMEsFile(file);
+    if (!allCNAMEs) return;
     logUp();
 
     // Get the bad cnames (convert to fake cnamesObject)
@@ -156,6 +159,7 @@ const mainCleanupPull = async issueNumber => {
     // Generate new cnames_active
     logDown();
     const cnamesActive = generateCNAMEsFile(newCNAMEs, file);
+    if (!cnamesActive) return;
     logUp();
 
     // Log

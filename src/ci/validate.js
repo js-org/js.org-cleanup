@@ -46,11 +46,13 @@ const validateCNAMEsFile = (file) => {
     // Get the raw cnames
     logDown();
     const cnames = parseCNAMEsFile(content);
+    if (!cnames) return;
     logUp();
 
     // Get the new file
     logDown();
     const newContent = generateCNAMEsFile(cnames, content);
+    if (!newContent) return;
     logUp();
 
     // Log
