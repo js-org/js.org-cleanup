@@ -11,16 +11,17 @@ These scripts operate as a small CLI tool, by running `node index.js`.
 
 There are four options within the CLI:
 
-- `--perfect`               : Generates a perfectly formatted and sorted cnames_active file
-- `--main-issue`            : Initiates the annual cleanup by creating the main cleanup issue
-- `--main-pr <issueNumber>` : Completes the annual cleanup by parsing issue and creating PR
-- `--validate <filePath>`   : Validates a given cnames_active file for perfect formatting
+- `--perfect`                     : Generates a perfectly formatted and sorted cnames_active file
+- `--main-issue`                  : Initiates the annual cleanup by creating the main cleanup issue
+- `--main-pr <issueNumber>`       : Completes the annual cleanup by parsing issue and creating PR
+- `--validate <filePath> [--fix]` : Validates a given cnames_active file for perfect formatting
 
 When using `--perfect`, `--main-issue`, or `--main-pr`, you will need to have a `config.json` repo
 created in the root of the repository following `config.example.json`.
 
 If you are using `--validate`, then no config is needed as this operates against a given local file
-path rather than using the GitHub API.
+path rather than using the GitHub API. This option can also be passed a `--fix` flag after the file
+path to automatically fix any violations.
 
 ### Example Generated Main Issue
 

@@ -33,8 +33,9 @@ const readCNAMEsFile = (file) => {
 /**
  * Validate the formatting and sorting of a cnames_active file
  * @param {string} file - File path for cnames_active file to validate
+ * @param {boolean} fix - Fix the file instead of reporting errors
  */
-const validateCNAMEsFile = (file) => {
+const validateCNAMEsFile = (file, fix) => {
     // Log
     log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -57,6 +58,13 @@ const validateCNAMEsFile = (file) => {
 
     // Log
     log('\nResuming validateCNAMEsFile process', chalk.cyanBright.bold);
+
+    // Handle auto-fix
+    if (fix) {
+        fs.writeFileSync(file, newContent);
+        log('\nFixed file written to disk for validateCNAMEsFile', chalk.greenBright.bold);
+        return;
+    }
 
     // Report diff
     let line = 0;

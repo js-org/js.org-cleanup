@@ -9,10 +9,10 @@ const chalk = require('chalk');
  */
 const showArgsError = () => {
     log('\nPlease provide one of the following command line arguments to run the cleanup script:', chalk.red);
-    log('  --perfect               : Generates a perfectly formatted and sorted cnames_active file', chalk.red);
-    log('  --main-issue            : Initiates the annual cleanup by creating the main cleanup issue', chalk.red);
-    log('  --main-pr <issueNumber> : Completes the annual cleanup by parsing issue and creating PR', chalk.red);
-    log('  --validate <filePath>   : Validates a given cnames_active file for perfect formatting', chalk.red);
+    log('  --perfect                     : Generates a perfectly formatted and sorted cnames_active file', chalk.red);
+    log('  --main-issue                  : Initiates the annual cleanup by creating the main cleanup issue', chalk.red);
+    log('  --main-pr <issueNumber>       : Completes the annual cleanup by parsing issue and creating PR', chalk.red);
+    log('  --validate <filePath> [--fix] : Validates a given cnames_active file for perfect formatting', chalk.red);
     log('\nCleanup script aborted', chalk.redBright.bold);
 };
 
@@ -39,7 +39,7 @@ const run = async () => {
             }
         case '--validate':
             if (args.length >= 2) {
-                require('./src/ci/validate').validateCNAMEsFile(args[1]);
+                require('./src/ci/validate').validateCNAMEsFile(args[1], args[2] === '--fix');
                 return;
             }
     }
