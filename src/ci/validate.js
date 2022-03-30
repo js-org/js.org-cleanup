@@ -72,24 +72,30 @@ const validateCNAMEsFile = (file, fix) => {
     for (let i = 0; i < diffContent.length; i++) {
         const part = diffContent[i];
         const previousPart = i > 0 ? diffContent[i - 1] : null;
+        const nextPart = i < diffContent.length - 1 ? diffContent[i + 1] : null;
 
         if (part.added || part.removed) {
             const partLines = part.value.slice(0, -1).split('\n');
             const previousPartLines = previousPart ? previousPart.value.slice(0, -1).split('\n') : null;
+            const nextPartLines = nextPart ? nextPart.value.slice(0, -1).split('\n') : null;
 
             for (let j = 0; j < partLines.length; j++) {
                 const partLine = partLines[j];
 
                 if (part.added) {
                     if (previousPart && previousPart.removed && j < previousPartLines.length) {
-                        const previousPartLine = previousPartLines[j];
-                        log(`Line ${line + 1}: Expected: '${partLine}'`, chalk.redBright);
-                        log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${previousPartLine}'`, chalk.redBright);
+                        // Other half of expected/found from below, don't log
                     } else {
                         log(`Line ${line}: Expected to find '${partLine}' after existing line`, chalk.redBright);
                     }
                 } else {
-                    log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
+                    if (nextPart && nextPart.added && j < nextPartLines.length) {
+                        const nextPartLine = nextPartLines[j];
+                        log(`Line ${line + 1}: Expected: '${nextPartLine}'`, chalk.redBright);
+                        log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${partLine}'`, chalk.redBright);
+                    } else {
+                        log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
+                    }
 
                     // Increase line count if from old content
                     line++;
