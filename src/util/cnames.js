@@ -53,15 +53,15 @@ const parseCNAMEsFile = (content) => {
         let target = match[2].replace(/\/+$/, '');
 
         // Drop http(s)://
-        const urlMatch = target.match(/^(?:https?:)?\/\/(.+)$/);
+        const urlMatch = target.match(/^(?:https?:)?\/\/(.+)$/i);
         if (urlMatch) target = urlMatch[1];
 
         // Convert github.com to github.io
-        const githubComMatch = target.match(/^github\.com\/([^/]+)\/(.+)$/);
+        const githubComMatch = target.match(/^github\.com\/([^/]+)\/(.+)$/i);
         if (githubComMatch) target = `${githubComMatch[1]}.github.io/${githubComMatch[2]}`;
 
         // Remove any paths that aren't github.io
-        const githubIoMatch = target.match(/^[^.]+\.github\.io\/[^/]+$/);
+        const githubIoMatch = target.match(/^[^.]+\.github\.io\/[^/]+$/i);
         const hasPathMatch = target.match(/^([^/]+)\/(.+)$/);
         if (!githubIoMatch && hasPathMatch) target = hasPathMatch[1];
 
