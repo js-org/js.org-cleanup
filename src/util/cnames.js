@@ -38,7 +38,7 @@ const parseCNAMEsFile = (content) => {
     }
 
     // Regex time
-    const reg = new RegExp(/^[ \t]*['"](.*)['"][ \t]*:[ \t]*['"](.*)['"][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*$/);
+    const reg = new RegExp(/^[ \t]*['"]([a-z0-9-_.]*)['"][ \t]*:[ \t]*['"]([^"]*)['"][ \t]*,?[ \t]*(\/\/ *nocf.*)?[ \t]*$/i);
     const cnames = {};
     for (let i = varLine + 1; i < closingLine; i++) {
         const line = lines[i];
