@@ -38,19 +38,39 @@ const parseCNAMEsFile = (content) => {
     }
 
     // Regex time
-    const reg = new RegExp(/^[ \t]*['"](.*)['"][ \t]*:[ \t]*['"](.*)['"][ \t]*,?[ \t]*(\/\/ *[Nn][Oo][Cc][Ff].*)?[ \t]*$/);
+    const reg = new RegExp(/^[ \t]*['"]([a-z0-9-_.]*)['"][ \t]*:[ \t]*['"]([^"]*)['"][ \t]*,?[ \t]*(\/\/ *nocf.*)?[ \t]*$/i);
     const cnames = {};
     for (let i = varLine + 1; i < closingLine; i++) {
         const line = lines[i];
         const match = line.match(reg);
 
         if (!match) {
-            log(`  Could not parse line '${line}' of cnames_active object`, chalk.yellow);
+            log(`  Line ${i + 1}: Failed to parse '${line}' as cnames_active entry`, chalk.yellow);
             continue;
         }
 
-        cnames[match[1]] = {
-            target: match[2],
+        // Drop trailing slashes
+        let target = match[2].replace(/\/+$/, '');
+
+        // Drop http(s)://
+        const urlMatch = target.match(/^(?:https?:)?\/\/(.+)$/i);
+        if (urlMatch) target = urlMatch[1];
+
+        // Convert github.com to github.io
+        const githubComMatch = target.match(/^github\.com\/([^/]+)\/(.+)$/i);
+        if (githubComMatch) target = `${githubComMatch[1]}.github.io/${githubComMatch[2]}`;
+
+        // Remove any paths that aren't github.io
+        const githubIoMatch = target.match(/^[^.]+\.github\.io\/[^/]+$/i);
+        const hasPathMatch = target.match(/^([^/]+)\/(.+)$/);
+        if (!githubIoMatch && hasPathMatch) target = hasPathMatch[1];
+
+        // Ensure hostname is lowercase
+        const hostnameMatch = target.match(/^([^/]+)(.*)$/);
+        if (hostnameMatch) target = `${hostnameMatch[1].toLowerCase()}${hostnameMatch[2]}`;
+
+        cnames[match[1].toLowerCase()] = {
+            target,
             noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,
         }
     }
@@ -88,7 +108,6 @@ const generateCNAMEsFile = (cnames, file) => {
     log('  Comment blocks located in existing raw file', chalk.blue);
 
     // Get perfect alphabetical order
-    cnames = Object.fromEntries(Object.entries(cnames).map(entry => [ entry[0].toLowerCase(), entry[1] ]));
     const cnamesKeys = Object.keys(cnames);
     cnamesKeys.sort();
 
