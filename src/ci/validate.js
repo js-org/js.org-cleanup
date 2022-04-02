@@ -106,7 +106,7 @@ const validateCNAMEsFile = (file, fix) => {
                         const nextPartLine = nextPartLines[j];
                         log(`Line ${line + 1}: Expected: '${nextPartLine}'`, chalk.redBright);
                         log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${partLine}'`, chalk.redBright);
-                        if (context.actions) console.log(`::error file=${context.file},line=${line + 1}::Expected: \`${nextPartLine.replace(/`/g, '\\`')}\`%0AFound: \`${partLine.replace(/`/g, '\\`')}\``);
+                        if (context.actions) console.log(`::error file=${context.file},line=${line + 1}::Expected: \`${nextPartLine.replace(/`/g, '\\`')}\`%0A   Found: \`${partLine.replace(/`/g, '\\`')}\``);
                     } else {
                         log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
                         if (context.actions) console.log(`::error file=${context.file},line=${line + 1}::Expected no line, but found \`${partLine.replace(/`/g, '\\`')}\``);
