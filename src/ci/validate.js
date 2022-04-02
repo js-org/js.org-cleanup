@@ -99,17 +99,17 @@ const validateCNAMEsFile = (file, fix) => {
                         // Other half of expected/found from below, don't log
                     } else {
                         log(`Line ${line}: Expected to find '${partLine}' after existing line`, chalk.redBright);
-                        if (context.actions) log(`::error file=${context.file},line=${line}::Expected to find \`${partLine.replace(/`/g, '\\`')}\` after existing line`, chalk.redBright);
+                        if (context.actions) console.log(`::error file=${context.file},line=${line}::Expected to find \`${partLine.replace(/`/g, '\\`')}\` after existing line`);
                     }
                 } else {
                     if (nextPart && nextPart.added && j < nextPartLines.length) {
                         const nextPartLine = nextPartLines[j];
                         log(`Line ${line + 1}: Expected: '${nextPartLine}'`, chalk.redBright);
                         log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${partLine}'`, chalk.redBright);
-                        if (context.actions) log(`::error file=${context.file},line=${line + 1}::Expected: \`${nextPartLine.replace(/`/g, '\\`')}\`%0AFound: \`${partLine.replace(/`/g, '\\`')}\``, chalk.redBright);
+                        if (context.actions) console.log(`::error file=${context.file},line=${line + 1}::Expected: \`${nextPartLine.replace(/`/g, '\\`')}\`%0AFound: \`${partLine.replace(/`/g, '\\`')}\``);
                     } else {
                         log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
-                        if (context.actions) log(`::error file=${context.file},line=${line + 1}::Expected no line, but found \`${partLine.replace(/`/g, '\\`')}\``, chalk.redBright);
+                        if (context.actions) console.log(`::error file=${context.file},line=${line + 1}::Expected no line, but found \`${partLine.replace(/`/g, '\\`')}\``);
                     }
 
                     // Increase line count if from old content

@@ -47,7 +47,7 @@ const parseCNAMEsFile = (content, context = {}) => {
 
         if (!match) {
             log(`  Line ${i + 1}: Failed to parse '${line}' as cnames_active entry`, chalk.yellow);
-            if (context.actions) log(`::warning file=${context.file},line=${i + 1}::Failed to parse \`${line.replace(/`/g, '\\`')}\` as cnames_active entry`, chalk.yellow);
+            if (context.actions) console.log(`::warning file=${context.file},line=${i + 1}::Failed to parse \`${line.replace(/`/g, '\\`')}\` as cnames_active entry`);
             continue;
         }
 
