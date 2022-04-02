@@ -10,7 +10,7 @@ require('./types');
 /**
  * Parse cnames data from provided cnames file content
  * @param {string} content - The cnames file content to parse
- * @param {cnamesContext} [context={}}] - The context for parsing, such as GitHub Actions
+ * @param {cnamesContext} [context={}] - The context for parsing, such as GitHub Actions
  * @returns {?cnamesObject}
  */
 const parseCNAMEsFile = (content, context = {}) => {

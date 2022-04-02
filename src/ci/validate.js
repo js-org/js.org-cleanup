@@ -40,7 +40,7 @@ const readCNAMEsFile = (file) => {
  */
 const validateCNAMEsFile = (file, fix) => {
     // Log
-    log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold)
+    log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold);
 
     // Create a context (for GitHub Actions)
     file = resolve(file);
