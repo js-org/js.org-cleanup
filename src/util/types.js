@@ -26,3 +26,9 @@
  * @property {cnamesObject} pending - Any cname entries that could not be contacted automatically
  * @property {cnamesObject} contact - All cname entries that were automatically contacted
  */
+
+/**
+ * @typedef {Object} cnamesContext
+ * @property {boolean} [actions] - If the current context is GitHub Actions
+ * @property {string} [file] - The filename for the current context
+ */

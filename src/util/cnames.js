@@ -10,9 +10,10 @@ require('./types');
 /**
  * Parse cnames data from provided cnames file content
  * @param {string} content - The cnames file content to parse
+ * @param {cnamesContext} [context={}}] - The context for parsing, such as GitHub Actions
  * @returns {?cnamesObject}
  */
-const parseCNAMEsFile = (content) => {
+const parseCNAMEsFile = (content, context = {}) => {
     // Log
     log('\nStarting parseCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -46,6 +47,7 @@ const parseCNAMEsFile = (content) => {
 
         if (!match) {
             log(`  Line ${i + 1}: Failed to parse '${line}' as cnames_active entry`, chalk.yellow);
+            if (context.actions) log(`::warning file=${context.file},line=${i + 1}::Failed to parse \`${line.replace(/`/g, '\\`')}\` as cnames_active entry`, chalk.yellow);
             continue;
         }
 

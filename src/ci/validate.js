@@ -10,6 +10,9 @@ const chalk = require('chalk');
 // Load in fs for files
 const fs = require('fs');
 
+// Load in path resolving
+const { resolve } = require('path');
+
 // Load in diff for comparing files
 const diff = require('diff');
 
@@ -37,7 +40,16 @@ const readCNAMEsFile = (file) => {
  */
 const validateCNAMEsFile = (file, fix) => {
     // Log
-    log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold);
+    log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold)
+
+    // Create a context (for GitHub Actions)
+    file = resolve(file);
+    const context = {
+        actions: !!process.env.GITHUB_ACTIONS,
+        file: process.env.GITHUB_WORKSPACE && file.startsWith(process.env.GITHUB_WORKSPACE)
+            ? file.substring(process.env.GITHUB_WORKSPACE.length + 1)
+            : file,
+    };
 
     // Read in the file
     logDown();
@@ -46,7 +58,7 @@ const validateCNAMEsFile = (file, fix) => {
 
     // Get the raw cnames
     logDown();
-    const cnames = parseCNAMEsFile(content);
+    const cnames = parseCNAMEsFile(content, context);
     if (!cnames) return;
     logUp();
 
@@ -87,14 +99,17 @@ const validateCNAMEsFile = (file, fix) => {
                         // Other half of expected/found from below, don't log
                     } else {
                         log(`Line ${line}: Expected to find '${partLine}' after existing line`, chalk.redBright);
+                        if (context.actions) log(`::error file=${context.file},line=${line}::Expected to find \`${partLine.replace(/`/g, '\\`')}\` after existing line`, chalk.redBright);
                     }
                 } else {
                     if (nextPart && nextPart.added && j < nextPartLines.length) {
                         const nextPartLine = nextPartLines[j];
                         log(`Line ${line + 1}: Expected: '${nextPartLine}'`, chalk.redBright);
                         log(`${' '.repeat(Math.log10(line + 1) + 7)} Found:    '${partLine}'`, chalk.redBright);
+                        if (context.actions) log(`::error file=${context.file},line=${line + 1}::Expected: \`${nextPartLine.replace(/`/g, '\\`')}\`%0AFound: \`${partLine.replace(/`/g, '\\`')}\``, chalk.redBright);
                     } else {
                         log(`Line ${line + 1}: Expected no line, but found '${partLine}'`, chalk.redBright);
+                        if (context.actions) log(`::error file=${context.file},line=${line + 1}::Expected no line, but found \`${partLine.replace(/`/g, '\\`')}\``, chalk.redBright);
                     }
 
                     // Increase line count if from old content
