@@ -77,9 +77,15 @@ const parseCNAMEsFile = (content, context = {}) => {
         const hostnameMatch = target.match(/^([^/]+)(.*)$/);
         if (hostnameMatch) target = `${hostnameMatch[1].toLowerCase()}${hostnameMatch[2]}`;
 
+        // Ensure consistent noCF flag
+        let noCF = match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined;
+
+        // Any sub-sub-domains must use noCF
+        if (subdomain.includes('.')) noCF = noCF || '// noCF';
+
         cnames[subdomain] = {
             target,
-            noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,
+            noCF,
         }
     }
 
