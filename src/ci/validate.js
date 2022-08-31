@@ -34,6 +34,16 @@ const readCNAMEsFile = (file) => {
 };
 
 /**
+ * Log the final result of the validation with an appropriate exit code
+ * @param {boolean} [success=true] - Whether the validation succeeded or failed
+ */
+const logExit = (success = true) => {
+    log(`Validation ${success ? 'completed' : 'failed'} for validateCNAMEsFile`,
+        success ? chalk.greenBright.bold : chalk.redBright.bold);
+    process.exit(success ? 0 : 1);
+};
+
+/**
  * Validate the formatting and sorting of a cnames_active file
  * @param {string} file - File path for cnames_active file to validate
  * @param {boolean} fix - Fix the file instead of reporting errors
@@ -59,13 +69,19 @@ const validateCNAMEsFile = (file, fix) => {
     // Get the raw cnames
     logDown();
     const cnames = parseCNAMEsFile(content, context);
-    if (!cnames) return;
+    if (!cnames) {
+        logExit(false);
+        return;
+    }
     logUp();
 
     // Get the new file
     logDown();
     const newContent = generateCNAMEsFile(cnames, content);
-    if (!newContent) return;
+    if (!newContent) {
+        logExit(false);
+        return;
+    }
     logUp();
 
     // Log
@@ -123,10 +139,7 @@ const validateCNAMEsFile = (file, fix) => {
     }
 
     // Done
-    const fail = content !== newContent;
-    log(`Validation ${fail ? 'failed' : 'completed'} for validateCNAMEsFile`,
-        fail ? chalk.redBright.bold : chalk.greenBright.bold);
-    process.exit(fail ? 1 : 0);
+    logExit(content === newContent);
 };
 
 // Export
