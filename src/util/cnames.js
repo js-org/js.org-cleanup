@@ -51,6 +51,12 @@ const parseCNAMEsFile = (content, context = {}) => {
             continue;
         }
 
+        // Subdomains are always lowercase
+        let subdomain = match[1].toLowerCase();
+
+        // Drop any js.org suffix
+        subdomain = subdomain.replace(/\.js\.org$/, '');
+
         // Drop trailing slashes
         let target = match[2].replace(/\/+$/, '');
 
@@ -71,9 +77,15 @@ const parseCNAMEsFile = (content, context = {}) => {
         const hostnameMatch = target.match(/^([^/]+)(.*)$/);
         if (hostnameMatch) target = `${hostnameMatch[1].toLowerCase()}${hostnameMatch[2]}`;
 
-        cnames[match[1].toLowerCase()] = {
+        // Ensure consistent noCF flag
+        let noCF = match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined;
+
+        // Any sub-sub-domains must use noCF
+        if (subdomain.includes('.')) noCF = noCF || '// noCF';
+
+        cnames[subdomain] = {
             target,
-            noCF: match[3] ? `// noCF${match[3].slice(2).trim().slice(4)}` : undefined,
+            noCF,
         }
     }
 
