@@ -73,6 +73,9 @@ const parseCNAMEsFile = (content, context = {}) => {
         const hasPathMatch = target.match(/^([^/]+)\/(.+)$/);
         if (!githubIoMatch && hasPathMatch) target = hasPathMatch[1];
 
+        // Convert vercel.app to cname.vercel-dns.com
+        if (target.endsWith('.vercel.app')) target = 'cname.vercel-dns.com';
+
         // Ensure hostname is lowercase
         const hostnameMatch = target.match(/^([^/]+)(.*)$/);
         if (hostnameMatch) target = `${hostnameMatch[1].toLowerCase()}${hostnameMatch[2]}`;
@@ -82,6 +85,9 @@ const parseCNAMEsFile = (content, context = {}) => {
 
         // Any sub-sub-domains must use noCF
         if (subdomain.includes('.')) noCF = noCF || '// noCF';
+
+        // Any Vercel subdomains must use noCF
+        if (subdomain === 'cname.vercel-dns.com') noCF = noCF || '// noCF';
 
         cnames[subdomain] = {
             target,
