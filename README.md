@@ -2,9 +2,11 @@
 [![Donate](https://img.shields.io/badge/Donate-for_registrar_fees-1F87FF.svg?style=flat-square&logo=open-collective&logoColor=fff)](https://opencollective.com/js-org)
 
 ## Cleanup Scripts
+
 These are the scripts behind the annual js.org cleanup process.
 
 ### CLI
+
 These scripts operate as a small CLI tool, by running `node index.js`.
 
 There are four options within the CLI:
