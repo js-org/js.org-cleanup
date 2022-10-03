@@ -26,10 +26,13 @@ path to automatically fix any violations.
 ### Examples
 
 #### Generated Main Issue
+
 https://github.com/js-org-cleanup/simulated-js.org/issues/46
 
 #### Generated Contact Issue
+
 https://github.com/js-org-cleanup/simulated-automatic-contact/issues/12
 
 #### Generated Pull Request
+
 https://github.com/js-org-cleanup/simulated-js.org/pull/47
