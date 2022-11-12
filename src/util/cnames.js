@@ -87,7 +87,7 @@ const parseCNAMEsFile = (content, context = {}) => {
         if (subdomain.includes('.')) noCF = noCF || '// noCF';
 
         // Any Vercel subdomains must use noCF
-        if (subdomain === 'cname.vercel-dns.com') noCF = noCF || '// noCF';
+        if (target === 'cname.vercel-dns.com') noCF = noCF || '// noCF';
 
         cnames[subdomain] = {
             target,
