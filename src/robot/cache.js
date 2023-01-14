@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 // Load in path joining
-const { join } = require('path');
+const { join, dirname } = require('path');
 
 /**
  * Fetch cached data for the given function name
@@ -14,9 +14,11 @@ const getCache = name => {
     if (!fs.existsSync(path)) return null;
     const file = fs.readFileSync(path, 'utf8');
     if (!file) return null;
-    const data = JSON.parse(file);
-    if (!data) return null;
-    return data;
+    try {
+        return JSON.parse(file);
+    } catch {
+        return null;
+    }
 };
 
 /**
@@ -25,8 +27,8 @@ const getCache = name => {
  * @param {*} contents - The data to store
  */
 const setCache = (name, contents) => {
-    if (!fs.existsSync(join(__dirname, '..', '..', 'cache'))) fs.mkdirSync('cache')
-    const path = join(__dirname, '..', 'cache', `${name}.json`);
+    const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
+    if (!fs.existsSync(dirname(path))) fs.mkdirSync(dirname(path));
     const data = JSON.stringify(contents);
     fs.writeFileSync(path, data);
 };
