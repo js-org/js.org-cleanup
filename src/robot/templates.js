@@ -34,8 +34,8 @@ const repoContactIssue = async (cname, data, issue, robot) => {
     const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
-        .replace(/{{HTTP}}/g, data.http)
-        .replace(/{{HTTPS}}/g, data.https)
+        .replace(/{{HTTP}}/g, data.http || 'Okay')
+        .replace(/{{HTTPS}}/g, data.https || 'Okay')
         .replace(/{{ISSUE}}/g, issue);
     return `${body}${robot ? `${robotDisclaimer()}` : ''}`;
 };

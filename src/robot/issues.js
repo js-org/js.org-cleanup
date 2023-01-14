@@ -139,7 +139,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
     }
     return list;
 };
@@ -216,7 +216,7 @@ const createMainIssue = async () => {
     log(`Failures: ${Object.keys(failed).length.toLocaleString()} ${Math.round(Object.keys(failed).length / Object.keys(cnames).length * 100).toLocaleString()}%`, chalk.yellow);
     for (const cname in failed) {
         if (!failed.hasOwnProperty(cname)) continue;
-        log(`  http://${cname}.js.org > HTTP: \`${failed[cname].http}\` HTTPS: \`${failed[cname].https}\``, chalk.yellow);
+        log(`  http://${cname}.js.org > HTTP: \`${failed[cname].http || 'Okay'}\` HTTPS: \`${failed[cname].https || 'Okay'}\``, chalk.yellow);
     }
 
     // Wait for confirmation
