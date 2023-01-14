@@ -64,11 +64,11 @@ const testUrl = async url => {
     } finally {
         clearTimeout(timer);
     }
+    if (!resp.ok) return `Failed with status code '${resp.status} ${resp.statusText}'`;
 
-    if (!resp.ok) {
-        return `Failed with status code '${resp.status} ${resp.statusText}'`;
-    }
-    if (resp.redirected && !(new URL(resp.url).origin.endsWith('.js.org'))) {
+    // Only allow redirects within js.org
+    const origin = new URL(resp.url).origin;
+    if (resp.redirected && origin !== 'https://js.org' && !origin.endsWith('.js.org')) {
         return `Failed due to automatic redirect to '${resp.url}'`;
     }
 
@@ -128,10 +128,10 @@ const validateCNAMEs = async (cnames) => {
         const failedHttp = await testUrl(urlHttp);
         const failedHttps = await testUrl(urlHttps);
 
-        // Allow one to fail without care
-        if (failedHttp && failedHttps) {
+        // Log any failures
+        if (failedHttp || failedHttps) {
             // Log
-            log(`    ...failed: HTTP: \`${failedHttp}\` HTTPS: \`${failedHttps}\``, chalk.yellow);
+            log(`    ...failed: HTTP: \`${failedHttp || 'Okay'}\` HTTPS: \`${failedHttps || 'Okay'}\``, chalk.yellow);
 
             // Save
             failedCounter++;
