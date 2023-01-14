@@ -229,12 +229,16 @@ const createMainIssue = async () => {
     log('\nResuming createMainIssue process', chalk.cyanBright.bold);
 
     // Create new empty issue (change this for DEV)
-    const issue = await octokit.issues.create({
-        owner: config.repository_owner,
-        repo: config.repository_name,
-        title: 'JS.ORG CLEANUP',
-        body: 'Automatic initial cleanup contact in progress... this issue will be updated shortly.'
-    });
+    let issue = getCache('createMainIssueProgress');
+    if (!issue) {
+        issue = await octokit.issues.create({
+            owner: config.repository_owner,
+            repo: config.repository_name,
+            title: 'JS.ORG CLEANUP',
+            body: 'Automatic initial cleanup contact in progress... this issue will be updated shortly.'
+        });
+        setCache('createMainIssueProgress', issue);
+    }
 
     let pending = failed;
     let contact = {};
@@ -277,13 +281,14 @@ const createMainIssue = async () => {
     });
 
     // Save to cache
-    setCache('createMainIssue', issue.data);
+    setCache('createMainIssue', issue);
 
     // Reset cache
     log('  Issue updated with full list', chalk.green);
     log('  Purging cache before completion', chalk.blue);
     removeCache('validateCNAMEs');
     removeCache('attemptTargetIssues');
+    removeCache('createMainIssueProgress');
 
     // Done
     log('Issue creation completed for createMainIssue', chalk.greenBright.bold);

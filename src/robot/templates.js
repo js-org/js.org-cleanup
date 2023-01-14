@@ -29,7 +29,7 @@ const robotDisclaimer = () => {
  * @param {boolean} robot - Indicates the robot disclaimer should be applied
  * @returns {string}
  */
-const repoContactIssue = async (cname, data, issue, robot) => {
+const repoContactIssue = (cname, data, issue, robot) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'contact_issue.md'), 'utf8');
     const body = template
         .replace(/{{CNAME}}/g, cname)
