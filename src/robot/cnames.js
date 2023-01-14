@@ -57,7 +57,10 @@ const testUrl = async url => {
     const timer = setTimeout(() => controller.abort(), 5000);
 
     try {
-        resp = await fetch(url, { signal: controller.signal });
+        resp = await fetch(url, {
+            headers: { 'User-Agent': 'js.org-cleanup/1.0 node-fetch' },
+            signal: controller.signal,
+        });
     } catch (err) {
         if (err.name === 'AbortError') return 'Failed due to time out after 5s';
         return `Failed during request with error '${err}'`;
@@ -72,6 +75,13 @@ const testUrl = async url => {
         return `Failed due to automatic redirect to '${resp.url}'`;
     }
 
+    // Check we have HTML content
+    const contentType = resp.headers.get('content-type');
+    if (!contentType || !/(^|;)\s*text\/html(;|$)/i.test(contentType)) {
+        return `Failed with content type '${contentType}' (status '${resp.status} ${resp.statusText}')`;
+    }
+
+    // Check we have some content
     const text = await resp.text();
     if (text.toLowerCase().trim() === '') {
         return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`;
