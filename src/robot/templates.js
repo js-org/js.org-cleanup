@@ -47,7 +47,7 @@ const repoContactIssue = (cname, data, issue, robot) => {
  * @param {Array<string>} notBadCNAMEs - Bad cnames not being removed
  * @returns {string}
  */
-const mainPullRequest = async (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
+const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_pr.md'), 'utf8');
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
