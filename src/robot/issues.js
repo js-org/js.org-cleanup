@@ -139,7 +139,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
     }
     return list;
 };
@@ -212,6 +212,13 @@ const createMainIssue = async () => {
         };
     }
 
+    // Show a summary of the failures
+    log(`Failures: ${Object.keys(failed).length.toLocaleString()} ${Math.round(Object.keys(failed).length / Object.keys(cnames).length * 100).toLocaleString()}%`, chalk.yellow);
+    for (const cname in failed) {
+        if (!failed.hasOwnProperty(cname)) continue;
+        log(`  http://${cname}.js.org > HTTP: \`${failed[cname].http || 'Okay'}\` HTTPS: \`${failed[cname].https || 'Okay'}\``, chalk.yellow);
+    }
+
     // Wait for confirmation
     let ans = '';
     while (ans.toString().toLowerCase().trim() !== 'confirm') {
@@ -222,12 +229,16 @@ const createMainIssue = async () => {
     log('\nResuming createMainIssue process', chalk.cyanBright.bold);
 
     // Create new empty issue (change this for DEV)
-    const issue = await octokit.issues.create({
-        owner: config.repository_owner,
-        repo: config.repository_name,
-        title: 'JS.ORG CLEANUP',
-        body: 'Automatic initial cleanup contact in progress... this issue will be updated shortly.'
-    });
+    let issue = getCache('createMainIssueProgress');
+    if (!issue) {
+        issue = await octokit.issues.create({
+            owner: config.repository_owner,
+            repo: config.repository_name,
+            title: 'JS.ORG CLEANUP',
+            body: 'Automatic initial cleanup contact in progress... this issue will be updated shortly.'
+        });
+        setCache('createMainIssueProgress', issue);
+    }
 
     let pending = failed;
     let contact = {};
@@ -270,13 +281,14 @@ const createMainIssue = async () => {
     });
 
     // Save to cache
-    setCache('createMainIssue', issue.data);
+    setCache('createMainIssue', issue);
 
     // Reset cache
     log('  Issue updated with full list', chalk.green);
     log('  Purging cache before completion', chalk.blue);
     removeCache('validateCNAMEs');
     removeCache('attemptTargetIssues');
+    removeCache('createMainIssueProgress');
 
     // Done
     log('Issue creation completed for createMainIssue', chalk.greenBright.bold);

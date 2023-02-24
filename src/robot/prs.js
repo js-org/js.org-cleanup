@@ -176,7 +176,7 @@ const mainCleanupPull = async issueNumber => {
         repo: config.repository_name,
         title: name,
         body,
-        head: 'cleanup',
+        head: `cleanup-${new Date().toISOString().split('T')[0]}`,
         changes: {
             files: {
                 'cnames_active.js': cnamesActive

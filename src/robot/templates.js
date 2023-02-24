@@ -29,13 +29,13 @@ const robotDisclaimer = () => {
  * @param {boolean} robot - Indicates the robot disclaimer should be applied
  * @returns {string}
  */
-const repoContactIssue = async (cname, data, issue, robot) => {
+const repoContactIssue = (cname, data, issue, robot) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'contact_issue.md'), 'utf8');
     const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
-        .replace(/{{HTTP}}/g, data.http)
-        .replace(/{{HTTPS}}/g, data.https)
+        .replace(/{{HTTP}}/g, data.http || 'Okay')
+        .replace(/{{HTTPS}}/g, data.https || 'Okay')
         .replace(/{{ISSUE}}/g, issue);
     return `${body}${robot ? `${robotDisclaimer()}` : ''}`;
 };
@@ -47,7 +47,7 @@ const repoContactIssue = async (cname, data, issue, robot) => {
  * @param {Array<string>} notBadCNAMEs - Bad cnames not being removed
  * @returns {string}
  */
-const mainPullRequest = async (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
+const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_pr.md'), 'utf8');
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
