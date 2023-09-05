@@ -77,7 +77,7 @@ const parseCNAMEsFile = (content, context = {}) => {
         if (target.endsWith('.vercel.app')) target = 'cname.vercel-dns.com';
 
         // Convert netlify.com to netlify.app
-        if (target.endsWith('.netlify.com')) target.endsWith = '.netlify.app';
+        if (target.endsWith('.netlify.com')) target = target.replace('.netlify.com', '.netlify.app');
 
         // Ensure hostname is lowercase
         const hostnameMatch = target.match(/^([^/]+)(.*)$/);
