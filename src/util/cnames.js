@@ -139,7 +139,13 @@ const generateCNAMEsFile = (cnames, file) => {
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
         const data = cnames[cname];
-        cnamesList.push(`  "${cname}": "${data.target}"${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
+        
+        const target = data.target.split('.');
+        if(target[target.length - 1] === '') {
+            target.splice(-1, 1);
+        }
+
+        cnamesList.push(`  "${cname}": "${target.join('.')}"${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
     }
 
     // Format into the new file
