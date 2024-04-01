@@ -60,6 +60,13 @@ const parseCNAMEsFile = (content, context = {}) => {
         // Drop trailing slashes
         let target = match[2].replace(/\/+$/, '');
 
+        // Drop trailing periods
+        const targetArr = target.split('.');
+        if (targetArr[targetArr.length - 1] === '') {
+            targetArr.splice(-1, 1);
+            target = targetArr.join('.');
+        }
+
         // Drop http(s)://
         const urlMatch = target.match(/^(?:https?:)?\/\/(.+)$/i);
         if (urlMatch) target = urlMatch[1];
@@ -139,6 +146,7 @@ const generateCNAMEsFile = (cnames, file) => {
     for (const i in cnamesKeys) {
         const cname = cnamesKeys[i];
         const data = cnames[cname];
+
         cnamesList.push(`  "${cname}": "${data.target}"${Number(i) === cnamesKeys.length - 1 ? '' : ','}${data.noCF ? ` ${data.noCF}` : ''}`)
     }
 
