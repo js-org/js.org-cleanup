@@ -38,21 +38,14 @@ export const getCNAMEsFile = async () => {
  * @returns {Promise<?string>} - The failure error message (or undefined if successful)
  */
 const testUrl = async url => {
-    let resp;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-
-    try {
-        resp = await fetch(url, {
-            headers: { 'User-Agent': 'js.org-cleanup/1.0' },
-            signal: controller.signal,
-        });
-    } catch (err) {
-        if (err.name === 'AbortError') return 'Failed due to time out after 5s';
-        return `Failed during request with error '${err}'`;
-    } finally {
-        clearTimeout(timer);
-    }
+    const resp = await fetch(url, {
+        headers: { 'User-Agent': 'js.org-cleanup/1.0' },
+        signal: AbortSignal.timeout(5000),
+    }).catch(err => {
+        if (err.name === 'AbortError') return { err: 'Failed due to time out after 5s' };
+        return { err: `Failed during request with error '${err}'` };
+    });
+    if (resp.err) return resp.err;
     if (!resp.ok) return `Failed with status code '${resp.status} ${resp.statusText}'`;
 
     // Only allow redirects within js.org
@@ -71,6 +64,12 @@ const testUrl = async url => {
     const text = await resp.text();
     if (text.toLowerCase().trim() === '') {
         return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`;
+    }
+
+    // Check we didn't get the JS.org 302 page
+    const subdomain = url.replace(/^https?:\/\//, '').replace(/\.js\.org$/, '');
+    if (text.includes(`<title>302 ${subdomain} - JS.ORG</title>`)) {
+        return `Failed with JS.org 302 page (status '${resp.status} ${resp.statusText}')`;
     }
 };
 
