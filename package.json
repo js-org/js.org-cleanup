@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "The script behind the annual js.org cleanup process",
+  "type": "module",
   "main": "index.js",
   "repository": {
     "type": "git",
