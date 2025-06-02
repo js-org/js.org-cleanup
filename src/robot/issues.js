@@ -1,43 +1,22 @@
-// Load in custom logging
-const { logDown, logUp, log } = require('../util/log');
+import fs from 'node:fs';
 
-// Load in custom caching
-const { getCache, setCache, removeCache } = require('./cache');
+import chalk from 'chalk';
+import Octokit from '@octokit/rest';
 
-// Load in our config
-const config = require('../../config.json');
+import { logDown, logUp, log } from '../util/log.js';
+import { getCache, setCache, removeCache } from './cache.js';
+import { getCNAMEsFile, validateCNAMEs } from './cnames.js';
+import { parseCNAMEsFile } from '../util/cnames.js';
+import { repoContactIssue } from './templates.js';
+import config from '../../config.json' assert { type: 'json' };
 
-// Load in all the cnames stuff
-const { getCNAMEsFile, validateCNAMEs } = require('./cnames');
-const { parseCNAMEsFile } = require('../util/cnames');
-
-// Load in templates
-const { repoContactIssue } = require('./templates');
-
-// Load in confirm script
-const confirm = require('./confirm');
-
-// Load in Octokit for GitHub API
-const Octokit = require('@octokit/rest');
 const octokit = new Octokit({ auth: config.github_token });
-
-// Load in fs for files
-const fs = require('fs');
-
-// Load in path joining
-const { join } = require('path');
-
-// Load in chalk for logging
-const chalk = require('chalk');
-
-// Load custom jsdoc types
-require('../util/types');
 
 /**
  * Attempt to make contact via GitHub issues on failed cname entries
- * @param {cnamesObject} failed - All failed cname entries to try
+ * @param {import('../util/types.js').cnamesObject} failed - All failed cname entries to try
  * @param {string} issueUrl - The main issue cleanup URL
- * @returns {Promise<cnamesAttemptedContact>}
+ * @returns {Promise<import('../util/types.js').cnamesAttemptedContact>}
  */
 const attemptTargetIssues = async (failed, issueUrl) => {
     // Log
@@ -131,7 +110,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
 
 /**
  * Converts js.org cname entries to the markdown cleanup list format
- * @param {cnamesObject} cnames - The entries to convert to MD
+ * @param {import('../util/types.js').cnamesObject} cnames - The entries to convert to MD
  * @returns {Array<string>}
  */
 const entriesToList = cnames => {
@@ -148,7 +127,7 @@ const entriesToList = cnames => {
  * Fetches & validates all CNAME entries, formats them into the JS.org cleanup issue template
  * @returns {Promise<?string>}
  */
-const createMainIssue = async () => {
+export const createMainIssue = async () => {
     // Log
     log('\nStarting createMainIssue process', chalk.cyanBright.bold);
 
@@ -266,7 +245,7 @@ const createMainIssue = async () => {
         { target: 'xxx', http: 'xxx', https: 'xxx' },
         issue.data.html_url,
         false);
-    const tpl = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_issue.md'), 'utf8');
+    const tpl = fs.readFileSync(new URL('../../templates/main_issue.md', import.meta.url), 'utf8');
     const body = tpl
         .replace(/{{PENDING_LIST}}/g, pendingList.join('\n'))
         .replace(/{{CONTACT_LIST}}/g, contactList.join('\n'))
@@ -300,7 +279,7 @@ const createMainIssue = async () => {
  * @param {int} issueNumber - The cleanup issue to scan
  * @returns {Promise<Array<string>>}
  */
-const parseIssueEntries = async issueNumber => {
+export const parseIssueEntries = async issueNumber => {
     // Log
     log('\nStarting parseIssueCNAMEs process', chalk.cyanBright.bold);
 
@@ -330,6 +309,3 @@ const parseIssueEntries = async issueNumber => {
     log('Parsing completed for parseIssueCNAMEs', chalk.greenBright.bold);
     return badCNAMEs;
 };
-
-// Export
-module.exports = { createMainIssue, parseIssueEntries };

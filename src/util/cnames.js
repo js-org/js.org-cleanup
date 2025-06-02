@@ -1,19 +1,14 @@
-// Load in custom logging
-const { log } = require('./log');
+import chalk from 'chalk';
 
-// Load in chalk for logging
-const chalk = require('chalk');
-
-// Load custom jsdoc types
-require('./types');
+import { log } from './log.js';
 
 /**
  * Parse cnames data from provided cnames file content
  * @param {string} content - The cnames file content to parse
- * @param {cnamesContext} [context={}] - The context for parsing, such as GitHub Actions
- * @returns {?cnamesObject}
+ * @param {import('./types.js').cnamesContext} [context={}] - The context for parsing, such as GitHub Actions
+ * @returns {?import('./types.js').cnamesObject}
  */
-const parseCNAMEsFile = (content, context = {}) => {
+export const parseCNAMEsFile = (content, context = {}) => {
     // Log
     log('\nStarting parseCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -109,11 +104,11 @@ const parseCNAMEsFile = (content, context = {}) => {
 
 /**
  * Create a perfectly formatted cnames_active file based on the data provided
- * @param {cnamesObject} cnames - The cnames data to use in the file
+ * @param {import('./types.js').cnamesObject} cnames - The cnames data to use in the file
  * @param {string} file - The cnames file content to use
  * @returns {?string}
  */
-const generateCNAMEsFile = (cnames, file) => {
+export const generateCNAMEsFile = (cnames, file) => {
     // Log
     log('\nStarting generateCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -154,6 +149,3 @@ const generateCNAMEsFile = (cnames, file) => {
     log('Generation completed for generateCNAMEsFile', chalk.greenBright.bold);
     return content
 };
-
-// Export
-module.exports = { parseCNAMEsFile, generateCNAMEsFile };

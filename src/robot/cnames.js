@@ -1,33 +1,20 @@
-// Load in custom logging
-const { log } = require('../util/log');
+import { URL } from 'node:url';
 
-// Load in custom caching
-const { getCache, setCache } = require('./cache');
+import chalk from 'chalk';
+import fetch from 'node-fetch';
+import Octokit from '@octokit/rest';
 
-// Load in our config
-const config = require('../../config.json');
+import { log } from '../util/log.js';
+import { getCache, setCache } from './cache.js';
+import config from '../../config.json' assert { type: 'json' };
 
-// Load in URL for checking redirects
-const { URL } = require('url');
-
-// Load in Octokit for GitHub API
-const Octokit = require('@octokit/rest');
 const octokit = new Octokit();
-
-// Load in fetch for URL testing
-const fetch = require('node-fetch');
-
-// Load in chalk for logging
-const chalk = require('chalk');
-
-// Load custom jsdoc types
-require('../util/types');
 
 /**
  * Fetches the raw cnames_active file from the configured repository
  * @returns {Promise<string>}
  */
-const getCNAMEsFile = async () => {
+export const getCNAMEsFile = async () => {
     // Log
     log('\nStarting getCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -90,10 +77,10 @@ const testUrl = async url => {
 
 /**
  * Validates each CNAME entry using a HTTP & HTTPS test
- * @param {cnamesObject} cnames - Every entry to test
- * @returns {Promise<cnamesValidationObject>} - The results of the validation ({failed, passed})
+ * @param {import('../util/types.js').cnamesObject} cnames - Every entry to test
+ * @returns {Promise<import('../util/types.js').cnamesValidationObject>} - The results of the validation ({failed, passed})
  */
-const validateCNAMEs = async (cnames) => {
+export const validateCNAMEs = async (cnames) => {
     // Log
     log('\nStarting validateCNAMEs process', chalk.cyanBright.bold);
 
@@ -176,6 +163,3 @@ const validateCNAMEs = async (cnames) => {
     log('Testing completed for validateCNAMEs', chalk.greenBright.bold);
     return { failed, passed }
 };
-
-// Export
-module.exports = { getCNAMEsFile, validateCNAMEs };

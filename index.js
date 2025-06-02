@@ -1,8 +1,9 @@
-// Load in custom logging
-const { log } = require('./src/util/log');
+import chalk from 'chalk';
 
-// Load in chalk for logging
-const chalk = require('chalk');
+import { log } from './src/util/log.js';
+import { perfectCNAMEsFile, mainCleanupPull } from './src/robot/prs.js';
+import { createMainIssue } from './src/robot/issues.js';
+import { validateCNAMEsFile } from './src/ci/validate.js';
 
 /**
  * Show an error message in console explaining the command line argument choices
@@ -27,19 +28,19 @@ const run = async () => {
     // Handle the args
     switch (args[0]) {
         case '--perfect':
-            await require('./src/robot/prs').perfectCNAMEsFile();
+            await perfectCNAMEsFile();
             return;
         case '--main-issue':
-            log(await require('./src/robot/issues').createMainIssue());
+            log(await createMainIssue());
             return;
         case '--main-pr':
             if (args.length >= 2) {
-                await require('./src/robot/prs').mainCleanupPull(parseInt(args[1]));
+                await mainCleanupPull(parseInt(args[1]));
                 return;
             }
         case '--validate':
             if (args.length >= 2) {
-                require('./src/ci/validate').validateCNAMEsFile(args[1], args[2] === '--fix');
+                validateCNAMEsFile(args[1], args[2] === '--fix');
                 return;
             }
     }

@@ -1,34 +1,22 @@
-// Load in custom logging
-const { logDown, logUp, log } = require('../util/log');
+import chalk from 'chalk';
+import Octokit from '@octokit/rest';
+import createPullRequestPlugin from 'octokit-create-pull-request';
 
-// Load in custom caching
-const { getCache, setCache, removeCache } = require('./cache');
+import { logDown, logUp, log } from '../util/log.js';
+import { getCache, setCache, removeCache } from './cache.js';
+import { getCNAMEsFile, validateCNAMEs } from './cnames.js';
+import { parseCNAMEsFile, generateCNAMEsFile } from '../util/cnames.js';
+import { robotDisclaimer, mainPullRequest } from './templates.js';
+import { parseIssueEntries } from './issues.js';
+import config from '../../config.json' assert { type: 'json' };
 
-// Load in templates
-const { robotDisclaimer, mainPullRequest } = require('./templates');
-
-// Load in all the cnames stuff
-const { getCNAMEsFile, validateCNAMEs } = require('./cnames');
-const { parseCNAMEsFile, generateCNAMEsFile } = require('../util/cnames');
-
-// Load in issue related actions
-const { parseIssueEntries } = require('./issues');
-
-// Load in our config
-const config = require('../../config.json');
-
-// Load in Octokit for GitHub API
-const Octokit = require('@octokit/rest').plugin(require('octokit-create-pull-request'));
-const octokit = new Octokit({ auth: config.github_token });
-
-// Load in chalk for logging
-const chalk = require('chalk');
+const octokit = new Octokit.plugin(createPullRequestPlugin)({ auth: config.github_token });
 
 /**
  * Generates a perfect cnames_active.js file w/ pull request
  * @returns {Promise<void>}
  */
-const perfectCNAMEsFile = async () => {
+export const perfectCNAMEsFile = async () => {
     // Log
     log('\nStarting perfectCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -88,7 +76,7 @@ const perfectCNAMEsFile = async () => {
  * @param {int} issueNumber - The cleanup issue to parse for bad cname entries
  * @returns {Promise<void>}
  */
-const mainCleanupPull = async issueNumber => {
+export const mainCleanupPull = async issueNumber => {
     // Log
     log('\nStarting mainCleanupPull process', chalk.cyanBright.bold);
 
@@ -198,6 +186,3 @@ const mainCleanupPull = async issueNumber => {
     log('Generation completed for mainCleanupPull', chalk.greenBright.bold);
     return pr.data.html_url;
 };
-
-// Export
-module.exports = { perfectCNAMEsFile, mainCleanupPull };
