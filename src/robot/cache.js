@@ -1,15 +1,12 @@
-// Load in fs for files
-const fs = require('fs');
-
-// Load in path joining
-const { join, dirname } = require('path');
+import fs from 'node:fs';
+import { join, dirname } from 'node:path';
 
 /**
  * Fetch cached data for the given function name
  * @param {string} name - Function name for cache
  * @returns {?*}
  */
-const getCache = name => {
+export const getCache = name => {
     const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
     if (!fs.existsSync(path)) return null;
     const file = fs.readFileSync(path, 'utf8');
@@ -26,7 +23,7 @@ const getCache = name => {
  * @param {string} name - The function name to cache data for
  * @param {*} contents - The data to store
  */
-const setCache = (name, contents) => {
+export const setCache = (name, contents) => {
     const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
     if (!fs.existsSync(dirname(path))) fs.mkdirSync(dirname(path));
     const data = JSON.stringify(contents);
@@ -37,11 +34,8 @@ const setCache = (name, contents) => {
  * Removes the cached for a given function name
  * @param {string} name - The function name to remove cache for
  */
-const removeCache = name => {
+export const removeCache = name => {
     const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
     if (!fs.existsSync(path)) return;
     fs.unlinkSync(path);
 };
-
-// Export
-module.exports = { getCache, setCache, removeCache };

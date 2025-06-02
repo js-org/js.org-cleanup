@@ -1,20 +1,13 @@
-// Load in our config
-const config = require('../../config.json');
+import fs from 'node:fs';
+import { join } from 'node:path';
 
-// Load in fs for files
-const fs = require('fs');
-
-// Load in path joining
-const { join } = require('path');
-
-// Load custom jsdoc types
-require('../util/types');
+import config from '../../config.json' assert { type: 'json' };
 
 /**
  * Generates the robot disclaimer
  * @returns {string}
  */
-const robotDisclaimer = () => {
+export const robotDisclaimer = () => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'bot_disclaimer.md'), 'utf8');
     return template
         .replace(/{{REPO_OWNER}}/g, config.repository_owner)
@@ -24,12 +17,12 @@ const robotDisclaimer = () => {
 /**
  * Generates the issue body for the cname entry to be contacted
  * @param {string} cname - The cname of the entry being contacted
- * @param {cnameObject} data - The data for the cname given
+ * @param {import('../util/types.js').cnameObject} data - The data for the cname given
  * @param {string} issue - The URL of the main cleanup issue
  * @param {boolean} robot - Indicates the robot disclaimer should be applied
  * @returns {string}
  */
-const repoContactIssue = (cname, data, issue, robot) => {
+export const repoContactIssue = (cname, data, issue, robot) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'contact_issue.md'), 'utf8');
     const body = template
         .replace(/{{CNAME}}/g, cname)
@@ -47,7 +40,7 @@ const repoContactIssue = (cname, data, issue, robot) => {
  * @param {Array<string>} notBadCNAMEs - Bad cnames not being removed
  * @returns {string}
  */
-const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
+export const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
     const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_pr.md'), 'utf8');
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
@@ -56,6 +49,3 @@ const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
         .replace(/{{NOT_BAD_CNAMES}}/g, notBadCNAMEs.map(x => ` - [${x}.js.org](http://${x}.js.org)`).join('\n') || '*None*');
     return `${body}${robotDisclaimer()}`;
 };
-
-// Export
-module.exports = { robotDisclaimer, repoContactIssue, mainPullRequest };

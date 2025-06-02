@@ -32,3 +32,5 @@
  * @property {boolean} [actions] - If the current context is GitHub Actions
  * @property {string} [file] - The filename for the current context
  */
+
+export {};

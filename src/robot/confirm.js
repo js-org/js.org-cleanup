@@ -1,11 +1,11 @@
-const readline = require('readline');
+import readline from 'node:readline';
 
 /**
  * Asks the query in the shell and returns the response
  * @param {string} query - The query to ask in shell
  * @returns {Promise<string>}
  */
-module.exports = query => {
+export default query => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,

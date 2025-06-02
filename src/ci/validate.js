@@ -1,20 +1,11 @@
-// Load in custom logging
-const { log, logDown, logUp } = require('../util/log');
+import fs from 'node:fs';
+import { resolve } from 'node:path';
 
-// Load in all the cnames stuff
-const { parseCNAMEsFile, generateCNAMEsFile } = require('../util/cnames');
+import chalk from 'chalk';
+import { diffLines } from 'diff';
 
-// Load in chalk for logging
-const chalk = require('chalk');
-
-// Load in fs for files
-const fs = require('fs');
-
-// Load in path resolving
-const { resolve } = require('path');
-
-// Load in diff for comparing files
-const diff = require('diff');
+import { log, logDown, logUp } from '../util/log.js';
+import { parseCNAMEsFile, generateCNAMEsFile } from '../util/cnames.js';
 
 /**
  * Read in a cnames_active file content from a provided file path
@@ -48,7 +39,7 @@ const logExit = (success = true) => {
  * @param {string} file - File path for cnames_active file to validate
  * @param {boolean} fix - Fix the file instead of reporting errors
  */
-const validateCNAMEsFile = (file, fix) => {
+export const validateCNAMEsFile = (file, fix) => {
     // Log
     log('\nStarting validateCNAMEsFile process', chalk.cyanBright.bold);
 
@@ -96,7 +87,7 @@ const validateCNAMEsFile = (file, fix) => {
 
     // Report diff
     let line = 0;
-    const diffContent = diff.diffLines(content, newContent);
+    const diffContent = diffLines(content, newContent);
     for (let i = 0; i < diffContent.length; i++) {
         const part = diffContent[i];
         const previousPart = i > 0 ? diffContent[i - 1] : null;
@@ -141,6 +132,3 @@ const validateCNAMEsFile = (file, fix) => {
     // Done
     logExit(content === newContent);
 };
-
-// Export
-module.exports = { validateCNAMEsFile };
