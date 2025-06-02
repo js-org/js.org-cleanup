@@ -1,7 +1,6 @@
 import { URL } from 'node:url';
 
 import chalk from 'chalk';
-import fetch from 'node-fetch';
 import Octokit from '@octokit/rest';
 
 import { log } from '../util/log.js';
@@ -45,7 +44,7 @@ const testUrl = async url => {
 
     try {
         resp = await fetch(url, {
-            headers: { 'User-Agent': 'js.org-cleanup/1.0 node-fetch' },
+            headers: { 'User-Agent': 'js.org-cleanup/1.0' },
             signal: controller.signal,
         });
     } catch (err) {
