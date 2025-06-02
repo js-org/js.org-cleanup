@@ -72,6 +72,12 @@ const testUrl = async url => {
     if (text.toLowerCase().trim() === '') {
         return `Failed with empty return body (status '${resp.status} ${resp.statusText}')`;
     }
+
+    // Check we didn't get the JS.org 302 page
+    const subdomain = url.replace(/^https?:\/\//, '').replace(/\.js\.org$/, '');
+    if (text.includes(`<title>302 ${subdomain} - JS.ORG</title>`)) {
+        return `Failed with JS.org 302 page (status '${resp.status} ${resp.statusText}')`;
+    }
 };
 
 /**
