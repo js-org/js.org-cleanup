@@ -73,7 +73,7 @@ const testUrl = async url => {
     }
 
     // Check for a meta refresh tag
-    const refresh = text.match(/<meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=(.+?);?\s*["']/i);
+    const refresh = text.match(/(?<!<!--\[if .+?\]>)<meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=(.+?);?\s*["']/i);
     if (refresh) {
         try {
             const redirectUrl = new URL(refresh[1], url);
