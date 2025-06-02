@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
 
 import chalk from 'chalk';
 import Octokit from '@octokit/rest';
@@ -246,7 +245,7 @@ export const createMainIssue = async () => {
         { target: 'xxx', http: 'xxx', https: 'xxx' },
         issue.data.html_url,
         false);
-    const tpl = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_issue.md'), 'utf8');
+    const tpl = fs.readFileSync(new URL('../../templates/main_issue.md', import.meta.url), 'utf8');
     const body = tpl
         .replace(/{{PENDING_LIST}}/g, pendingList.join('\n'))
         .replace(/{{CONTACT_LIST}}/g, contactList.join('\n'))

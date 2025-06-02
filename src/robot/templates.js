@@ -1,5 +1,4 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
 
 import config from '../../config.json' assert { type: 'json' };
 
@@ -8,7 +7,7 @@ import config from '../../config.json' assert { type: 'json' };
  * @returns {string}
  */
 export const robotDisclaimer = () => {
-    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'bot_disclaimer.md'), 'utf8');
+    const template = fs.readFileSync(new URL('../../templates/bot_disclaimer.md', import.meta.url), 'utf8');
     return template
         .replace(/{{REPO_OWNER}}/g, config.repository_owner)
         .replace(/{{REPO_NAME}}/g, config.repository_name);
@@ -23,7 +22,7 @@ export const robotDisclaimer = () => {
  * @returns {string}
  */
 export const repoContactIssue = (cname, data, issue, robot) => {
-    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'contact_issue.md'), 'utf8');
+    const template = fs.readFileSync(new URL('../../templates/contact_issue.md', import.meta.url), 'utf8');
     const body = template
         .replace(/{{CNAME}}/g, cname)
         .replace(/{{TARGET}}/g, data.target)
@@ -41,7 +40,7 @@ export const repoContactIssue = (cname, data, issue, robot) => {
  * @returns {string}
  */
 export const mainPullRequest = (issueNumber, stillBadCNAMEs, notBadCNAMEs) => {
-    const template = fs.readFileSync(join(__dirname, '..', '..', 'templates', 'main_pr.md'), 'utf8');
+    const template = fs.readFileSync(new URL('../../templates/main_pr.md', import.meta.url), 'utf8');
     const body = template
         .replace(/{{ISSUE_URL}}/g, `https://github.com/${config.repository_owner}/${config.repository_name}/issues/${issueNumber}`)
         .replace(/{{ISSUE_NUMBER}}/g, issueNumber)

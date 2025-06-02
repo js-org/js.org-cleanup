@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-import { join, dirname } from 'node:path';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Fetch cached data for the given function name
@@ -7,7 +8,7 @@ import { join, dirname } from 'node:path';
  * @returns {?*}
  */
 export const getCache = name => {
-    const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
+    const path = new URL(`../../cache/${name}.json`, import.meta.url);
     if (!fs.existsSync(path)) return null;
     const file = fs.readFileSync(path, 'utf8');
     if (!file) return null;
@@ -24,8 +25,9 @@ export const getCache = name => {
  * @param {*} contents - The data to store
  */
 export const setCache = (name, contents) => {
-    const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
-    if (!fs.existsSync(dirname(path))) fs.mkdirSync(dirname(path));
+    const path = new URL(`../../cache/${name}.json`, import.meta.url);
+    const pathDir = dirname(fileURLToPath(path));
+    if (!fs.existsSync(pathDir)) fs.mkdirSync(pathDir);
     const data = JSON.stringify(contents);
     fs.writeFileSync(path, data);
 };
@@ -35,7 +37,7 @@ export const setCache = (name, contents) => {
  * @param {string} name - The function name to remove cache for
  */
 export const removeCache = name => {
-    const path = join(__dirname, '..', '..', 'cache', `${name}.json`);
+    const path = new URL(`../../cache/${name}.json`, import.meta.url);
     if (!fs.existsSync(path)) return;
     fs.unlinkSync(path);
 };
