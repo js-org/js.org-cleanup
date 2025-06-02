@@ -6,7 +6,7 @@ import Octokit from '@octokit/rest';
 
 import { log } from '../util/log.js';
 import { getCache, setCache } from './cache.js';
-import config from '../../config.json' assert { type: 'json' };
+import config from '../../config.json' with { type: 'json' };
 
 const octokit = new Octokit();
 

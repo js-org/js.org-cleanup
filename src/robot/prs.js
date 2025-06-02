@@ -8,7 +8,7 @@ import { getCNAMEsFile, validateCNAMEs } from './cnames.js';
 import { parseCNAMEsFile, generateCNAMEsFile } from '../util/cnames.js';
 import { robotDisclaimer, mainPullRequest } from './templates.js';
 import { parseIssueEntries } from './issues.js';
-import config from '../../config.json' assert { type: 'json' };
+import config from '../../config.json' with { type: 'json' };
 
 const octokit = new Octokit.plugin(createPullRequestPlugin)({ auth: config.github_token });
 

@@ -8,7 +8,7 @@ import { getCache, setCache, removeCache } from './cache.js';
 import { getCNAMEsFile, validateCNAMEs } from './cnames.js';
 import { parseCNAMEsFile } from '../util/cnames.js';
 import { repoContactIssue } from './templates.js';
-import config from '../../config.json' assert { type: 'json' };
+import config from '../../config.json' with { type: 'json' };
 
 const octokit = new Octokit({ auth: config.github_token });
 
