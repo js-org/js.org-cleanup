@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 import chalk from 'chalk';
-import Octokit from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 
 import { logDown, logUp, log } from '../util/log.js';
 import { getCache, setCache, removeCache } from './cache.js';
@@ -77,7 +77,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             // Attempt to create issue
             let issue;
             try {
-                issue = await octokit.issues.create({
+                issue = await octokit.rest.issues.create({
                     owner,
                     repo,
                     title: 'JS.ORG CLEANUP',
@@ -211,7 +211,7 @@ export const createMainIssue = async () => {
     // Create new empty issue (change this for DEV)
     let issue = getCache('createMainIssueProgress');
     if (!issue) {
-        issue = await octokit.issues.create({
+        issue = await octokit.rest.issues.create({
             owner: config.repository_owner,
             repo: config.repository_name,
             title: 'JS.ORG CLEANUP',
@@ -253,7 +253,7 @@ export const createMainIssue = async () => {
         .replace(/{{CONTACT_ISSUE}}/g, contactIssue);
 
     // Edit the issue
-    await octokit.issues.update({
+    await octokit.rest.issues.update({
         owner: config.repository_owner,
         repo: config.repository_name,
         issue_number: issue.data.number,
@@ -292,7 +292,7 @@ export const parseIssueEntries = async issueNumber => {
     }
 
     // Get the issue body
-    const issue = await octokit.issues.get({
+    const issue = await octokit.rest.issues.get({
         owner: config.repository_owner,
         repo: config.repository_name,
         issue_number: issueNumber

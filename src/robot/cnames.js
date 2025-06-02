@@ -1,7 +1,7 @@
 import { URL } from 'node:url';
 
 import chalk from 'chalk';
-import Octokit from '@octokit/rest';
+import { Octokit } from '@octokit/rest';
 
 import { log } from '../util/log.js';
 import { getCache, setCache } from './cache.js';
@@ -18,7 +18,7 @@ export const getCNAMEsFile = async () => {
     log('\nStarting getCNAMEsFile process', chalk.cyanBright.bold);
 
     // Get the raw GitHub API data
-    const req = await octokit.repos.getContents({
+    const req = await octokit.rest.repos.getContent({
         owner: config.repository_owner,
         repo: config.repository_name,
         path: 'cnames_active.js'

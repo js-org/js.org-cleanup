@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import Octokit from '@octokit/rest';
-import createPullRequestPlugin from 'octokit-create-pull-request';
+import { Octokit } from '@octokit/rest';
+import { createPullRequest } from 'octokit-plugin-create-pull-request';
 
 import { logDown, logUp, log } from '../util/log.js';
 import { getCache, setCache, removeCache } from './cache.js';
@@ -10,7 +10,7 @@ import { robotDisclaimer, mainPullRequest } from './templates.js';
 import { parseIssueEntries } from './issues.js';
 import config from '../../config.json' with { type: 'json' };
 
-const octokit = new Octokit.plugin(createPullRequestPlugin)({ auth: config.github_token });
+const octokit = new (Octokit.plugin(createPullRequest))({ auth: config.github_token });
 
 /**
  * Generates a perfect cnames_active.js file w/ pull request
@@ -62,7 +62,8 @@ export const perfectCNAMEsFile = async () => {
                 'cnames_active.js': newFile
             },
             commit: 'Cleanup: Perfect Format & Sorting'
-        }
+        },
+        update: true
     });
 
     // Done
@@ -90,7 +91,7 @@ export const mainCleanupPull = async issueNumber => {
     // Lock issue
     log('  Locking cleanup issue...', chalk.blue);
     try {
-        await octokit.issues.lock({
+        await octokit.rest.issues.lock({
             owner: config.repository_owner,
             repo: config.repository_name,
             issue_number: issueNumber
