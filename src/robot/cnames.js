@@ -71,6 +71,19 @@ const testUrl = async url => {
     if (text.includes(`<title>302 ${subdomain} - JS.ORG</title>`)) {
         return `Failed with JS.org 302 page (status '${resp.status} ${resp.statusText}')`;
     }
+
+    // Check for a meta refresh tag
+    const refresh = text.match(/(?<!<!--\[if .+?\]>)<meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=(.+?);?\s*["']/i);
+    if (refresh) {
+        try {
+            const redirectUrl = new URL(refresh[1], url);
+            if (!redirectUrl.origin.endsWith('.js.org')) {
+                return `Failed with meta refresh to '${redirectUrl.href}' (status '${resp.status} ${resp.statusText}')`;
+            }
+        } catch {
+            // Ignore any invalid URLs
+        }
+    }
 };
 
 /**
