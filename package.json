@@ -16,10 +16,9 @@
   },
   "homepage": "https://github.com/js-org/js.org-cleanup#readme",
   "dependencies": {
-    "@octokit/rest": "^16.28.2",
-    "chalk": "^2.4.2",
-    "diff": "^5.0.0",
-    "node-fetch": "^2.6.7",
-    "octokit-create-pull-request": "^1.2.0"
+    "@octokit/rest": "^22.0.0",
+    "chalk": "^5.4.1",
+    "diff": "^8.0.2",
+    "octokit-plugin-create-pull-request": "^6.0.1"
   }
 }

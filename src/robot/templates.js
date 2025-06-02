@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import config from '../../config.json' assert { type: 'json' };
+import config from '../../config.json' with { type: 'json' };
 
 /**
  * Generates the robot disclaimer

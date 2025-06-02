@@ -23,7 +23,7 @@ export const logUp = () => {
  * This logs a message at the current depth using the given color
  * Empty lines will be logged without indentation
  * @param {string} message - The message to be logged
- * @param {(line: string) => string} [chalkColor=chalk.default] - The chalk color that will be used
+ * @param {(...text: unknown[]) => string} [chalkColor=chalk.default] - The chalk color that will be used
  */
 export const log = (message, chalkColor) => {
     if (typeof message !== 'string') return;
