@@ -1,9 +1,6 @@
 import chalk from 'chalk';
 
 import { log } from './src/util/log.js';
-import { perfectCNAMEsFile, mainCleanupPull } from './src/robot/prs.js';
-import { createMainIssue } from './src/robot/issues.js';
-import { validateCNAMEsFile } from './src/ci/validate.js';
 
 /**
  * Show an error message in console explaining the command line argument choices
@@ -28,19 +25,19 @@ const run = async () => {
     // Handle the args
     switch (args[0]) {
         case '--perfect':
-            await perfectCNAMEsFile();
+            await import('./src/robot/prs.js').then(exports => exports.perfectCNAMEsFile());
             return;
         case '--main-issue':
-            log(await createMainIssue());
+            log(await import('./src/robot/issues.js').then(exports => exports.createMainIssue()));
             return;
         case '--main-pr':
             if (args.length >= 2) {
-                await mainCleanupPull(parseInt(args[1]));
+                await import('./src/robot/prs.js').then(exports => exports.mainCleanupPull(parseInt(args[1])));
                 return;
             }
         case '--validate':
             if (args.length >= 2) {
-                validateCNAMEsFile(args[1], args[2] === '--fix');
+                await import('./src/ci/validate.js').then(exports => exports.validateCNAMEsFile(args[1], args[2] === '--fix'));
                 return;
             }
     }
