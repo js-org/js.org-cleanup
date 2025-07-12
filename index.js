@@ -32,7 +32,7 @@ const run = async () => {
             return;
         case '--main-pr':
             if (args.length >= 2) {
-                await import('./src/robot/prs.js').then(exports => exports.mainCleanupPull(parseInt(args[1])));
+                log(await import('./src/robot/prs.js').then(exports => exports.mainCleanupPull(parseInt(args[1]))));
                 return;
             }
         case '--validate':
