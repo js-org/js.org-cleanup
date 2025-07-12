@@ -19,6 +19,11 @@ There are four options within the CLI:
 When using `--perfect`, `--main-issue`, or `--main-pr`, you will need to have a `config.json` file
 created in the root of the repository following `config.example.json`.
 
+When using `--main-pr`, if the token does not have write access to the repository, it will
+automatically create a fork of the repository and make the pull request against that fork. If the
+account already has a fork of the repository, you will need to ensure that the default branch of the
+fork is up to date with the upstream repository (or delete the fork) before running the command.
+
 If you are using `--validate`, then no config is needed as this operates against a given local file
 path rather than using the GitHub API. This option can also be passed a `--fix` flag after the file
 path to automatically fix any violations.
