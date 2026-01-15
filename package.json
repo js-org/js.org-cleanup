@@ -18,7 +18,7 @@
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "chalk": "^5.4.1",
-    "diff": "^8.0.2",
+    "diff": "^8.0.3",
     "octokit-plugin-create-pull-request": "^6.0.1"
   }
 }
