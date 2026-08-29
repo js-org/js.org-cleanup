@@ -158,6 +158,27 @@ export const mainCleanupPull = async issueNumber => {
     const body = mainPullRequest(issueNumber, Object.keys(stillBadCNAMEs), Object.keys(notBadCNAMEs));
     const name = `JS.ORG CLEANUP (#${issueNumber})`;
 
+    // Sync existing fork
+    log('  Checking for existing forked repository...', chalk.blue);
+    const user = await octokit.users.getAuthenticated();
+    const fork = await octokit.repos.get({
+        owner: user.data.login,
+        repo: config.repository_name
+    }).then(() => true, () => false);
+    if (fork) {
+        log('  Forked repository exists, syncing...', chalk.blue);
+        const upstream = await octokit.repos.get({
+            owner: config.repository_owner,
+            repo: config.repository_name
+        });
+        await octokit.repos.mergeUpstream({
+            owner: user.data.login,
+            repo: config.repository_name,
+            branch: upstream.data.default_branch,
+        });
+        log('  Forked repository synced with upstream', chalk.blue);
+    }
+
     // Make pull request
     log('  Creating pull request with changes...', chalk.blue);
     const pr = await octokit.createPullRequest({
