@@ -19,6 +19,6 @@ Required PR template for CI:
 - [x] I have read and accepted the [Terms and Conditions](http://js.org/terms.html)
 - The site content can be seen at https://*.js.org
 
-> The site content is being removed by automation.
+> The site content is being removed by automation and is relevant to JavaScript developers specifically because they are existing JS.org subdomains that are abandoned.
 
 -->
