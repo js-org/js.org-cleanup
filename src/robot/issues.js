@@ -74,27 +74,63 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             // Generate body
             const body = repoContactIssue(cname, data, issueUrl, true);
 
-            // Attempt to create issue
-            let issue;
+            let contactItem;
             try {
-                issue = await octokit.rest.issues.create({
+                const issue = await octokit.rest.issues.create({
                     owner,
                     repo,
-                    title: 'JS.ORG CLEANUP',
+                    title: 'JS.ORG.CLEANUP',
                     body
                 });
+                contactItem = issue.data;
             } catch (err) {
+                log(`   ...failed to create issue: ${String(err)}`, chalk.yellow);
+            }
+
+            // If issue creation failed, leave the message on the latest js.org PR for this subdomain
+            if (!contactItem) {
+                try {
+                    let pr;
+                    for await (const response of octokit.paginate.iterator(octokit.rest.pulls.list, {
+                        owner: config.repository_owner,
+                        repo: config.repository_name,
+                        state: 'all',
+                        sort: 'created',
+                        order: 'desc',
+                        per_page: 100
+                    })) {
+                        pr = response.data.find((item) => {
+                            return `${item.title}\n${item.body || ''}`.toLowerCase().includes(`${cname}.js.org`);
+                        });
+                        if (pr) break;
+                    }
+
+                    if (pr) {
+                        await octokit.rest.issues.createComment({
+                            owner: config.repository_owner,
+                            repo: config.repository_name,
+                            issue_number: pr.number,
+                            body
+                        });
+                        contactItem = pr;
+                        log(`    ...commented on PR ${pr.html_url}`, chalk.green);
+                    } else {
+                        log(`    ...failed to comment, no matching PR found in the js.org repository`, chalk.yellow);
+                    }
+                } catch (err) {
+                    log(`    ...failed to comment on the js.org PR:${String(err)}`, chalk.yellow);
+                }
             }
 
             // Abort if no issue, else save issue data
-            if (!issue || !issue.data) {
+            if (!contactItem) {
                 log('    ...failed, could not create issue', chalk.yellow);
                 data.contact = false;
                 pending[cname] = data;
             } else {
                 log('    ...succeeded', chalk.green);
                 successCounter++;
-                data.issue = issue.data;
+                data.issue = contactItem;
                 data.contact = true;
                 contact[cname] = data;
             }
@@ -119,7 +155,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
+        list.push(`- [] ** ${cname}.js.org ** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''} \n[HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
     }
     return list;
 };
@@ -300,7 +336,7 @@ export const parseIssueEntries = async issueNumber => {
 
     // Regex time
     const reg = new RegExp(/^- \[ ] \*\*(\S+?)\.js\.org\*\* > (\S+)$/gm);
-    const badCNAMEs = [ ...issue.data.body.matchAll(reg) ].map(match => match[1]);
+    const badCNAMEs = [...issue.data.body.matchAll(reg)].map(match => match[1]);
 
     // Cache
     cache[issueNumber] = badCNAMEs;
