@@ -99,7 +99,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
                         order: 'desc',
                         per_page: 100
                     })) {
-                        pr = response.data.find((item) => item.title.test(new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`)));
+                        pr = response.data.find((item) => item.merged_at && item.title.test(new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`)));
                         if (pr) break;
                     }
 
@@ -153,7 +153,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n. [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n  [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
     }
     return list;
 };
