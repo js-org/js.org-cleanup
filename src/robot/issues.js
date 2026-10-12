@@ -79,7 +79,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
                 const issue = await octokit.rest.issues.create({
                     owner,
                     repo,
-                    title: 'JS.ORG.CLEANUP',
+                    title: 'JS.ORG CLEANUP',
                     body
                 });
                 contactItem = issue.data;
@@ -94,14 +94,12 @@ const attemptTargetIssues = async (failed, issueUrl) => {
                     for await (const response of octokit.paginate.iterator(octokit.rest.pulls.list, {
                         owner: config.repository_owner,
                         repo: config.repository_name,
-                        state: 'all',
+                        state: 'closed',
                         sort: 'created',
                         order: 'desc',
                         per_page: 100
                     })) {
-                        pr = response.data.find((item) => {
-                            return `${item.title}\n${item.body || ''}`.toLowerCase().includes(`${cname}.js.org`);
-                        });
+                        pr = response.data.find((item) => item.title.test(new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`)));
                         if (pr) break;
                     }
 
@@ -155,7 +153,7 @@ const entriesToList = cnames => {
     for (const cname in cnames) {
         if (!cnames.hasOwnProperty(cname)) continue;
         const data = cnames[cname];
-        list.push(`- [] ** ${cname}.js.org ** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''} \n[HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
+        list.push(`- [ ] **${cname}.js.org** > ${data.target}${data.issue ? `\n  Issue: ${data.issue.html_url}` : ''}\n. [HTTP](http://${cname}.js.org): \`${data.http || 'Okay'}\`\n  [HTTPS](https://${cname}.js.org): \`${data.https || 'Okay'}\``);
     }
     return list;
 };
