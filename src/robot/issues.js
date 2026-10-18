@@ -29,6 +29,36 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     // Define some stuff
     const pending = {};
     const contact = {};
+    const pullRequestPages = [];
+    let pullRequestPagesComplete = false;
+    const pullRequestIterator = octokit.paginate.iterator(octokit.rest.pulls.list, {
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        state: 'closed',
+        sort: 'created',
+        order: 'desc',
+        per_page: 100
+    });
+    const findMatchingPullRequest = async cname => {
+        const findInPages = page => page.find((item) => item.merged_at && new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`).test(item.title));
+        
+        for (const page of pullRequestPages) {
+            const pr = findInPages(page);
+            if (pr) return pr;
+        }
+
+        while (!pullRequestPagesComplete) {
+            const { done, value } = await pullRequestIterator.next();
+            if (done) {
+                pullRequestPagesComplete = true;
+                break;
+            }
+
+            pullRequestPages.push(value.data);
+            const pr = findInPages(value.data);
+            if (pr) return pr;
+        }
+    };
 
     // Attempt with each entry
     let counter = 0;
@@ -90,18 +120,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             // If issue creation failed, leave the message on the latest js.org PR for this subdomain
             if (!contactItem) {
                 try {
-                    let pr;
-                    for await (const response of octokit.paginate.iterator(octokit.rest.pulls.list, {
-                        owner: config.repository_owner,
-                        repo: config.repository_name,
-                        state: 'closed',
-                        sort: 'created',
-                        order: 'desc',
-                        per_page: 100
-                    })) {
-                        pr = response.data.find((item) => item.merged_at && item.title.test(new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`)));
-                        if (pr) break;
-                    }
+                    const pr = await findMatchingPullRequest(cname);
 
                     if (pr) {
                         await octokit.rest.issues.createComment({
