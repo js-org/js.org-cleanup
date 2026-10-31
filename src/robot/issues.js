@@ -29,6 +29,36 @@ const attemptTargetIssues = async (failed, issueUrl) => {
     // Define some stuff
     const pending = {};
     const contact = {};
+    const pullRequestPages = [];
+    let pullRequestPagesComplete = false;
+    const pullRequestIterator = octokit.paginate.iterator(octokit.rest.pulls.list, {
+        owner: config.repository_owner,
+        repo: config.repository_name,
+        state: 'closed',
+        sort: 'created',
+        order: 'desc',
+        per_page: 100
+    })[Symbol.asyncIterator]();
+    const findMatchingPullRequest = async cname => {
+        const findInPages = page => page.find((item) => item.merged_at && new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`).test(item.title));
+        
+        for (const page of pullRequestPages) {
+            const pr = findInPages(page);
+            if (pr) return pr;
+        }
+
+        while (!pullRequestPagesComplete) {
+            const { done, value } = await pullRequestIterator.next();
+            if (done) {
+                pullRequestPagesComplete = true;
+                break;
+            }
+
+            pullRequestPages.push(value.data);
+            const pr = findInPages(value.data);
+            if (pr) return pr;
+        }
+    };
 
     // Attempt with each entry
     let counter = 0;
@@ -74,27 +104,50 @@ const attemptTargetIssues = async (failed, issueUrl) => {
             // Generate body
             const body = repoContactIssue(cname, data, issueUrl, true);
 
-            // Attempt to create issue
-            let issue;
+            let contactItem;
             try {
-                issue = await octokit.rest.issues.create({
+                const issue = await octokit.rest.issues.create({
                     owner,
                     repo,
                     title: 'JS.ORG CLEANUP',
                     body
                 });
+                contactItem = issue.data;
             } catch (err) {
+                log(`   ...failed to create issue: ${String(err)}`, chalk.yellow);
+            }
+
+            // If issue creation failed, leave the message on the latest js.org PR for this subdomain
+            if (!contactItem) {
+                try {
+                    const pr = await findMatchingPullRequest(cname);
+
+                    if (pr) {
+                        await octokit.rest.issues.createComment({
+                            owner: config.repository_owner,
+                            repo: config.repository_name,
+                            issue_number: pr.number,
+                            body
+                        });
+                        contactItem = pr;
+                        log(`    ...commented on PR ${pr.html_url}`, chalk.green);
+                    } else {
+                        log(`    ...failed to comment, no matching PR found in the js.org repository`, chalk.yellow);
+                    }
+                } catch (err) {
+                    log(`    ...failed to comment on the js.org PR:${String(err)}`, chalk.yellow);
+                }
             }
 
             // Abort if no issue, else save issue data
-            if (!issue || !issue.data) {
+            if (!contactItem) {
                 log('    ...failed, could not create issue', chalk.yellow);
                 data.contact = false;
                 pending[cname] = data;
             } else {
                 log('    ...succeeded', chalk.green);
                 successCounter++;
-                data.issue = issue.data;
+                data.issue = contactItem;
                 data.contact = true;
                 contact[cname] = data;
             }
