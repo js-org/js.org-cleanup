@@ -38,7 +38,7 @@ const attemptTargetIssues = async (failed, issueUrl) => {
         sort: 'created',
         order: 'desc',
         per_page: 100
-    });
+    })[Symbol.asyncIterator]();
     const findMatchingPullRequest = async cname => {
         const findInPages = page => page.find((item) => item.merged_at && new RegExp(`(^|[/ ])${cname.replace(/\./g, '\\.')}\\.js\\.org([/ ]|$)`).test(item.title));
         
